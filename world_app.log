@@ -1,0 +1,24 @@
+[2026-08-26 03:54:18] [boot] 初始化 MySQL...
+[2026-08-26 03:54:18] [boot] 确保数据库存在: all_in_one
+[2026-08-26 03:54:18] [boot] MySQL 连接成功
+[2026-08-26 03:54:18] [import] 库中已有数据 (countries=297, quotes=46)，跳过 SQLite 导入
+============================================
+  World App - 全面展示我们的世界数据
+  数据源: WorldBank + IMF + Market
+  数据库: MySQL (all_in_one)
+  访问: http://localhost:8080
+============================================
+[2026-08-26 03:54:18] [background] 开始抓取全部数据源...
+[veb] Running multi-threaded app on http://localhost:8080/
+listening on http://[::]:8080/
+[2026-08-26 03:54:20] [market] success: 更新 10 个行情标的 (10 条, 1916ms)
+[2026-08-26 03:54:20] [background] market 完成: 10
+[2026-08-26 03:54:21] [fx] success: 更新 11 个货币对汇率 (11 条, 940ms)
+[2026-08-26 03:54:21] [background] fx 完成: 11
+[2026-08-26 03:54:22] [commodity] partial: 更新 6/8 个商品品种 (6 条, 381ms)
+[2026-08-26 03:54:22] [background] commodity 完成: 6
+[2026-08-26 03:54:28] [boot] 已通过 cmd.exe 打开浏览器: http://localhost:8080
+[2026-08-26 03:54:34] [background] 抓取已在运行，跳过重复触发
+[2026-08-26 03:54:44] [background] 抓取已在运行，跳过重复触发
+�复触发
+[2026-08-26 03:54:44] [background] 抓取已在运行，跳过重复触发
