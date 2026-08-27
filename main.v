@@ -3,9 +3,12 @@ module main
 import veb
 import time
 import os
+import net.http
 import models
 import database
 import fetch
+import locale
+import sync
 
 // 编译期嵌入静态资源：单二进制即可独立部署，运行时不依赖源码目录的 static/
 const embedded_css = $embed_file('static/css/style.css').to_string()
@@ -37,6 +40,9 @@ fn main() {
 		app.static_files['/static/js/app.js'] = js_path
 	}
 
+	// 0. 初始化日志（V log 模块，UTF-8 编码）
+	app.db.init_log()
+
 	// 1. 初始化 MySQL + 表结构（数据库不存在时自动创建，支持全新部署）
 	database.log_line('boot', '初始化 MySQL...')
 	database.ensure_database() or {
@@ -60,26 +66,31 @@ fn main() {
 
 	println('============================================')
 	println('  World App - 全面展示我们的世界数据')
-	println('  数据源: WorldBank + IMF + Market')
+	println('  数据源: WorldBank + IMF + Market + OWID')
 	println('  数据库: MySQL (all_in_one)')
-	println('  访问: http://localhost:8080')
+	println('  访问: http://localhost:3003')
 	println('============================================')
 
 	// 3. 后台自动抓取/更新：所有 HTTP 请求带超时（fetch/http_util.v），
 	// 无外网时快速失败并写日志，不会阻塞服务器启动。
+	// OWID 数据从本地 CSV 导入，无需网络请求。
 	go app.background_refresh()
 
 	// 4. 启动 9 秒后自动打开浏览器展示首页（此时服务器已就绪）
 	go open_browser_later()
 
-	veb.run_at[App, Context](mut app, port: 8080) or { eprintln('服务器启动失败: $err') }
+	veb.run_at[App, Context](mut app, port: 3003) or { eprintln('服务器启动失败: $err') }
 }
 
 // open_browser_later 启动 9 秒后用系统默认浏览器打开首页。
 // 优先 os.open_uri（自动适配 windows/macos/linux 多种 opener）；
 // WSL 下若未装任何 Linux opener（xdg-open 等），回退用 cmd.exe 调起 Windows 默认浏览器。
 fn open_browser_later() {
-	url := 'http://localhost:8080'
+	if os.getenv('WA_NO_BROWSER') != '' {
+		database.log_line('boot', 'WA_NO_BROWSER 已设置，跳过自动打开浏览器')
+		return
+	}
+	url := 'http://localhost:3003'
 	time.sleep(9 * time.second)
 	os.open_uri(url) or {
 		if is_wsl() && os.execute('cmd.exe /c start "${url}"').exit_code == 0 {
@@ -157,19 +168,22 @@ fn run_fetch(label string, f fn () !int) (bool, int) {
 	return true, n
 }
 
-// trigger_fetch_all 抓取全部数据源（worldbank / imf / market / fx / commodity）
+// trigger_fetch_all 抓取全部数据源（worldbank / imf / market / fx / commodity / owid）
 fn (mut app App) trigger_fetch_all() {
+	app.mu.lock()
 	if app.refresh_running {
+		app.mu.unlock()
 		database.log_line('background', '抓取已在运行，跳过重复触发')
 		return
 	}
 	app.refresh_running = true
+	app.mu.unlock()
 	defer {
 		app.refresh_running = false
 	}
 	database.log_line('background', '开始抓取全部数据源...')
 	start := time.now()
-	total_sources := 6
+	total_sources := 7
 	mut fail := 0
 	// 3 个高频源
 	ok_m, _ := run_fetch('market', fn [app] () !int {
@@ -211,6 +225,16 @@ fn (mut app App) trigger_fetch_all() {
 	} else {
 		database.log_line('background', 'WLD 完成: ${nwld} 个指标')
 	}
+	// OWID 本地 CSV 导入（无需网络）
+	ok_owid, nowid := run_fetch('owid', fn [app] () !int {
+		return fetch.fetch_owid(app.db)
+	})
+	if !ok_owid {
+		fail++
+		database.log_line('background', 'OWID 导入失败（忽略，使用历史数据）')
+	} else {
+		database.log_line('background', 'OWID 完成: ${nowid} 条记录')
+	}
 	database.log_line('background',
 		'全量抓取结束: ${total_sources - fail}/${total_sources} 个数据源成功, 耗时 ${elapsed_ms(start)}ms')
 }
@@ -236,8 +260,10 @@ fn (mut app App) trigger_fetch_quotes() {
 }
 
 // elapsed_ms 自 start 起经过的毫秒数（用于统一日志格式）
+// 时钟回拨时防负值（WSL/NTP 同步常见）
 fn elapsed_ms(start time.Time) int {
-	return int(time.now().unix_milli() - start.unix_milli())
+	d := int(time.now().unix_milli() - start.unix_milli())
+	return if d > 0 { d } else { 0 }
 }
 
 // ============ veb 应用 ============
@@ -263,6 +289,7 @@ pub mut:
 	enable_markdown_negotiation   bool
 	db                            database.Database
 	refresh_running               bool
+	mu                            sync.Mutex
 }
 
 // Context 是 veb 的每请求上下文类型（作为泛型 X 传入 run_at）
@@ -273,42 +300,71 @@ struct Context {
 pub fn (mut app App) before_request() {
 }
 
+// resolve_lang 根据 ?lang= 覆盖 > lang cookie > 默认中文，确定界面语言；
+// 若请求中带 ?lang= 则同时写回 cookie，便于后续无参访问保持语言。
+fn (mut app App) resolve_lang(mut ctx Context) locale.Lang {
+	q := ctx.query['lang'] or { '' }
+	if q != '' {
+		lang := locale.parse_lang(q)
+		ctx.set_cookie(http.Cookie{
+			name:    'lang'
+			value:   lang.str()
+			path:    '/'
+			max_age: 86400 * 365
+		})
+		return lang
+	}
+	c := ctx.get_cookie('lang') or { '' }
+	return locale.parse_lang(c)
+}
+
 // 首页：概览 + 右侧栏
 @['/']
 pub fn (mut app App) index(mut ctx Context) veb.Result {
+	lang := app.resolve_lang(mut ctx)
 	ws := app.db.get_world_stats() or { models.WorldStats{} }
 	cats := models.all_categories()
-	html := render_page('overview', ws, cats, '', app)
+	html := render_page('overview', ws, cats, '', app, lang)
 	return ctx.html(html)
 }
 
 // 分类页面：右侧栏点击进入
 @['/category/:id']
 pub fn (mut app App) category_view(mut ctx Context, id string) veb.Result {
+	lang := app.resolve_lang(mut ctx)
 	ws := app.db.get_world_stats() or { models.WorldStats{} }
 	cats := models.all_categories()
 	search := ctx.query['search'] or { '' }
-	html := render_page(id, ws, cats, search, app)
+	html := render_page(id, ws, cats, search, app, lang)
 	return ctx.html(html)
 }
 
 // 国家详情（含该国全部指标）
 @['/country/:iso2']
 pub fn (mut app App) country_detail(mut ctx Context, iso2 string) veb.Result {
+	lang := app.resolve_lang(mut ctx)
 	ws := app.db.get_world_stats() or { models.WorldStats{} }
 	cats := models.all_categories()
+	// 获取 WorldBank + IMF 指标
 	inds := app.db.get_indicators_for_country(iso2) or { []models.Indicator{} }
-	html := render_country(ws, cats, iso2, inds, app)
+	// 获取 OWID 指标
+	owid_inds := app.db.get_owid_country_indicators(iso2) or { []models.Indicator{} }
+	// 合并
+	mut all_inds := []models.Indicator{}
+	all_inds << inds
+	all_inds << owid_inds
+	html := render_country(ws, cats, iso2, all_inds, app, lang)
 	return ctx.html(html)
 }
 
 // 市场行情页面
 @['/market/:market']
 pub fn (mut app App) market_view(mut ctx Context, market string) veb.Result {
+	lang := app.resolve_lang(mut ctx)
 	ws := app.db.get_world_stats() or { models.WorldStats{} }
 	cats := models.all_categories()
 	quotes := app.db.get_market_quotes(market, '') or { []models.MarketQuote{} }
-	html := render_market(ws, cats, market, quotes, app)
+	html := render_market(ws, cats, market, quotes, app, lang)
 	return ctx.html(html)
 }
 
@@ -327,7 +383,10 @@ pub fn (mut app App) search_api(mut ctx Context) veb.Result {
 pub fn (mut app App) api_stats(mut ctx Context) veb.Result {
 	ws := app.db.get_world_stats() or { models.WorldStats{} }
 	logs := app.db.recent_logs(5) or { []models.FetchLog{} }
-	return ctx.json(ApiStats{ stats: ws, logs: logs, fetching: app.refresh_running })
+	app.mu.lock()
+	fetching := app.refresh_running
+	app.mu.unlock()
+	return ctx.json(ApiStats{ stats: ws, logs: logs, fetching: fetching })
 }
 
 // 手动触发刷新
@@ -343,7 +402,7 @@ struct RefreshResp {
 
 @['/api/imf_top']
 pub fn (mut app App) api_imf_top(mut ctx Context) veb.Result {
-	top := app.db.get_indicator_top('imf', 'NGDPD', 10) or { []models.Indicator{} }
+	top := app.db.get_indicator_top('imf', 'NGDPD', 20) or { []models.Indicator{} }
 	mut labels := []string{}
 	mut values := []f64{}
 	for ind in top {

@@ -26,8 +26,8 @@ tail -30 "$LOG" 2>/dev/null
 echo ""
 echo "=== HTTP smoke (curl) ==="
 for p in / /api/stats /category/wb_overview /country/US /market/cn /market/fx /market/commodity /category/imf_wEO /static/css/style.css; do
-  code=$(curl -s -m 8 -o /dev/null -w "%{http_code}" "http://127.0.0.1:8080$p" 2>/dev/null)
-  size=$(curl -s -m 8 -o /tmp/wa_body.html -w "%{size_download}" "http://127.0.0.1:8080$p" 2>/dev/null)
+  code=$(curl -s -m 8 -o /dev/null -w "%{http_code}" "http://127.0.0.1:3003$p" 2>/dev/null)
+  size=$(curl -s -m 8 -o /tmp/wa_body.html -w "%{size_download}" "http://127.0.0.1:3003$p" 2>/dev/null)
   echo "HTTP $code  size=$size  $p"
 done
 

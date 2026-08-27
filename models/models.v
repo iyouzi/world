@@ -1,5 +1,7 @@
 module models
 
+import locale
+
 // 全局共享的数据模型 —— 整合 WorldBank / IMF / Market 三大数据源
 // 数据库统一使用 MySQL（按 AGENT.md 要求），启动时可选从 SQLite 导入初始数据。
 
@@ -10,6 +12,7 @@ pub enum DataSource {
 	worldbank
 	imf
 	market
+	owid
 }
 
 pub fn (d DataSource) str() string {
@@ -17,6 +20,7 @@ pub fn (d DataSource) str() string {
 		.worldbank { 'worldbank' }
 		.imf { 'imf' }
 		.market { 'market' }
+		.owid { 'owid' }
 	}
 }
 
@@ -25,6 +29,7 @@ pub fn data_source_from_str(s string) DataSource {
 		'worldbank' { return .worldbank }
 		'imf' { return .imf }
 		'market' { return .market }
+		'owid' { return .owid }
 		else { return .worldbank }
 	}
 }
@@ -127,19 +132,19 @@ pub:
 
 pub struct WorldStats {
 pub mut:
-	total_countries    int
-	total_population   f64
-	total_gdp          f64
-	avg_life           f64
-	last_update        string
+	total_countries  int
+	total_population f64
+	total_gdp        f64
+	avg_life         f64
+	last_update      string
 	// WLD 世界汇总指标（WorldBank 官方口径）
-	gdp_per_capita     f64 // NY.GDP.PCAP.KD，constant 2015 USD
-	inflation          f64 // FP.CPI.TOTL.ZG，%
-	unemployment       f64 // SL.UEM.TOTL.NE.ZS，%
-	internet_users     f64 // IT.NET.USER.ZS，%
-	education_spend    f64 // SE.XPD.TOTL.GD.ZS，%GDP
-	health_spend       f64 // SH.XPD.CHEX.GD.ZS，%GDP
-	energy_use         f64 // EG.USE.PCAP.KG.OE，kg oil eq per capita
+	gdp_per_capita  f64 // NY.GDP.PCAP.KD，constant 2015 USD
+	inflation       f64 // FP.CPI.TOTL.ZG，%
+	unemployment    f64 // SL.UEM.TOTL.NE.ZS，%
+	internet_users  f64 // IT.NET.USER.ZS，%
+	education_spend f64 // SE.XPD.TOTL.GD.ZS，%GDP
+	health_spend    f64 // SH.XPD.CHEX.GD.ZS，%GDP
+	energy_use      f64 // EG.USE.PCAP.KG.OE，kg oil eq per capita
 }
 
 // CountryGdp 国家 GDP 排行条目（各国最新年份，含名称）
@@ -246,6 +251,49 @@ pub fn all_categories() []Category {
 			icon:        '🛢️'
 			description: '黄金、原油等大宗商品行情'
 		},
+		// OWID Our World in Data 分类
+		Category{
+			id:          'owid_population'
+			title:       '人口与人口统计'
+			source:      'owid'
+			icon:        '👥'
+			description: '全球人口变化、年龄结构、生育率、城镇化趋势'
+		},
+		Category{
+			id:          'owid_health'
+			title:       '健康与医疗'
+			source:      'owid'
+			icon:        '🏥'
+			description: '预期寿命、儿童死亡率、孕产妇健康与吸烟率'
+		},
+		Category{
+			id:          'owid_energy'
+			title:       '能源与环境'
+			source:      'owid'
+			icon:        '⚡'
+			description: '能源消耗、碳排放、可再生能源与气候变化'
+		},
+		Category{
+			id:          'owid_economy'
+			title:       '经济与繁荣'
+			source:      'owid'
+			icon:        '📈'
+			description: '人均 GDP（购买力平价）、经济增长'
+		},
+		Category{
+			id:          'owid_education'
+			title:       '教育与知识'
+			source:      'owid'
+			icon:        '📚'
+			description: '平均受教育年限、教育投资与技能发展'
+		},
+		Category{
+			id:          'owid_food'
+			title:       '食品与农业'
+			source:      'owid'
+			icon:        '🌾'
+			description: '营养状况、肉类供给、粮食安全与饮食变化'
+		},
 	]
 }
 
@@ -262,6 +310,155 @@ pub fn iso2_to_flag_emoji(iso2 string) string {
 		buf << byte(0xA6 + offset)
 	}
 	return buf.bytestr()
+}
+
+// OwidIndicator OWID CSV 指标定义（slug → 中文名/单位/CSV列名/主题）
+pub struct OwidIndicator {
+pub:
+	slug        string // CSV 文件名（不含 .csv）
+	column_name string // CSV 中数值列名（空则用第 4 列）
+	topic_slug  string // 主题 slug
+	name_zh     string // 中文名
+	name_en     string // 英文名
+	unit        string // 单位
+}
+
+// name 按语言返回指标名称
+pub fn (o &OwidIndicator) name(lang locale.Lang) string {
+	return if lang == .en { o.name_en } else { o.name_zh }
+}
+
+pub fn owid_indicators() []OwidIndicator {
+	return [
+		OwidIndicator{
+			slug:        'population'
+			column_name: 'population_historical'
+			topic_slug:  'owid_population'
+			name_zh:     '人口总数'
+			name_en:     'Total Population'
+			unit:        '人'
+		},
+		OwidIndicator{
+			slug:        'life-expectancy'
+			column_name: 'life_expectancy_0'
+			topic_slug:  'owid_population'
+			name_zh:     '预期寿命'
+			name_en:     'Life Expectancy'
+			unit:        '岁'
+		},
+		OwidIndicator{
+			slug:        'children-per-woman-un'
+			column_name: 'fertility_rate__sex_all__age_all__variant_estimates'
+			topic_slug:  'owid_population'
+			name_zh:     '生育率'
+			name_en:     'Fertility Rate'
+			unit:        '孩/妇'
+		},
+		OwidIndicator{
+			slug:        'median-age'
+			column_name: 'median_age__sex_all__age_all__variant_estimates'
+			topic_slug:  'owid_population'
+			name_zh:     '中位年龄'
+			name_en:     'Median Age'
+			unit:        '岁'
+		},
+		OwidIndicator{
+			slug:        'share-of-population-urban'
+			column_name: 'share__area_type_urban__data_type_estimates'
+			topic_slug:  'owid_population'
+			name_zh:     '城镇化率'
+			name_en:     'Urban Population Share'
+			unit:        '%'
+		},
+		OwidIndicator{
+			slug:        'child-mortality'
+			column_name: 'child_mortality_rate'
+			topic_slug:  'owid_health'
+			name_zh:     '5岁以下儿童死亡率'
+			name_en:     'Child Mortality Rate'
+			unit:        '‰'
+		},
+		OwidIndicator{
+			slug:        'maternal-mortality'
+			column_name: 'mmr'
+			topic_slug:  'owid_health'
+			name_zh:     '孕产妇死亡率'
+			name_en:     'Maternal Mortality'
+			unit:        '/10万'
+		},
+		OwidIndicator{
+			slug:        'share-of-adults-who-smoke'
+			column_name: 'tobacco_use_pct_age_std__sex_both_sexes'
+			topic_slug:  'owid_health'
+			name_zh:     '吸烟率'
+			name_en:     'Smoking Rate'
+			unit:        '%'
+		},
+		OwidIndicator{
+			slug:        'annual-co2-emissions-per-country'
+			column_name: 'emissions_total'
+			topic_slug:  'owid_energy'
+			name_zh:     '年度CO₂排放量'
+			name_en:     'Annual CO₂ Emissions'
+			unit:        '吨'
+		},
+		OwidIndicator{
+			slug:        'co2-emissions-per-capita'
+			column_name: 'emissions_total_per_capita'
+			topic_slug:  'owid_energy'
+			name_zh:     '人均CO₂排放量'
+			name_en:     'CO₂ per Capita'
+			unit:        '吨'
+		},
+		OwidIndicator{
+			slug:        'share-electricity-renewables'
+			column_name: 'renewable_share_of_electricity__pct'
+			topic_slug:  'owid_energy'
+			name_zh:     '可再生电力占比'
+			name_en:     'Renewable Electricity Share'
+			unit:        '%'
+		},
+		OwidIndicator{
+			slug:        'gdp-per-capita-worldbank'
+			column_name: 'ny_gdp_pcap_pp_kd'
+			topic_slug:  'owid_economy'
+			name_zh:     '人均GDP(PPP)'
+			name_en:     'GDP per Capita (PPP)'
+			unit:        '国际元'
+		},
+		OwidIndicator{
+			slug:        'mean-years-of-schooling'
+			column_name: 'mf_youth_and_adults__15_64_years__average_years_of_education'
+			topic_slug:  'owid_education'
+			name_zh:     '平均受教育年限'
+			name_en:     'Mean Years of Schooling'
+			unit:        '年'
+		},
+		OwidIndicator{
+			slug:        'meat-supply-per-person'
+			column_name: 'meat__total__00002943__food_available_for_consumption__0645pc__kilograms_per_year_per_capita'
+			topic_slug:  'owid_food'
+			name_zh:     '人均肉类供给'
+			name_en:     'Meat Supply per Person'
+			unit:        '公斤/年'
+		},
+		OwidIndicator{
+			slug:        'food-supply-kcal'
+			column_name: 'daily_calories'
+			topic_slug:  'owid_food'
+			name_zh:     '日均热量供给'
+			name_en:     'Daily Calorie Supply'
+			unit:        '千卡/人/天'
+		},
+		OwidIndicator{
+			slug:        'prevalence-of-undernourishment'
+			column_name: '_2_1_1_prevalence_of_undernourishment__000000000024000__value__006121__percent'
+			topic_slug:  'owid_food'
+			name_zh:     '营养不足发生率'
+			name_en:     'Prevalence of Undernourishment'
+			unit:        '%'
+		},
+	]
 }
 
 // iso2_to_iso3 常用国家 iso2 -> iso3 映射。
@@ -347,7 +544,218 @@ pub fn iso2_to_iso3(iso2 string) string {
 	return m[iso2] or { '' }
 }
 
-// 格式化大数值（从原 worldbank 代码沿用）
+// iso3_to_iso2 反向映射：ISO3 → ISO2（用于 OWID CSV 的 code 列转换）
+pub fn iso3_to_iso2(iso3 string) string {
+	m := {
+		'USA':       'US'
+		'CHN':       'CN'
+		'JPN':       'JP'
+		'DEU':       'DE'
+		'GBR':       'GB'
+		'FRA':       'FR'
+		'ITA':       'IT'
+		'CAN':       'CA'
+		'KOR':       'KR'
+		'AUS':       'AU'
+		'BRA':       'BR'
+		'IND':       'IN'
+		'RUS':       'RU'
+		'ESP':       'ES'
+		'NLD':       'NL'
+		'SWE':       'SE'
+		'NOR':       'NO'
+		'DNK':       'DK'
+		'FIN':       'FI'
+		'CHE':       'CH'
+		'BEL':       'BE'
+		'AUT':       'AT'
+		'POL':       'PL'
+		'CZE':       'CZ'
+		'GRC':       'GR'
+		'PRT':       'PT'
+		'IRL':       'IE'
+		'SGP':       'SG'
+		'NZL':       'NZ'
+		'ZAF':       'ZA'
+		'MEX':       'MX'
+		'IDN':       'ID'
+		'TUR':       'TR'
+		'SAU':       'SA'
+		'ARE':       'AE'
+		'HKG':       'HK'
+		'TWN':       'TW'
+		'THA':       'TH'
+		'MYS':       'MY'
+		'PHL':       'PH'
+		'VNM':       'VN'
+		'ARG':       'AR'
+		'CHL':       'CL'
+		'COL':       'CO'
+		'PER':       'PE'
+		'EGY':       'EG'
+		'NGA':       'NG'
+		'ISR':       'IL'
+		'PAK':       'PK'
+		'BGD':       'BD'
+		'KEN':       'KE'
+		'MAR':       'MA'
+		'GHA':       'GH'
+		'TZA':       'TZ'
+		'ETH':       'ET'
+		'CIV':       'CI'
+		'IRN':       'IR'
+		'QAT':       'QA'
+		'VEN':       'VE'
+		'ECU':       'EC'
+		'HUN':       'HU'
+		'ROU':       'RO'
+		'SVK':       'SK'
+		'SVN':       'SI'
+		'HRV':       'HR'
+		'BGR':       'BG'
+		'SRB':       'SR'
+		'PNG':       'PG'
+		'GTM':       'GT'
+		'CUB':       'CU'
+		'DOM':       'DO'
+		'TUN':       'TN'
+		'KAZ':       'KZ'
+		'LKA':       'LK'
+		'AFG':       'AF'
+		'ALB':       'AL'
+		'DZA':       'DZ'
+		'AGO':       'AO'
+		'ARM':       'AM'
+		'AZE':       'AZ'
+		'BHS':       'BS'
+		'BHR':       'BH'
+		'BRB':       'BB'
+		'BLR':       'BY'
+		'BLZ':       'BZ'
+		'BEN':       'BJ'
+		'BMU':       'BM'
+		'BTN':       'BT'
+		'BOL':       'BO'
+		'BIH':       'BA'
+		'BWA':       'BW'
+		'BRN':       'BN'
+		'BFA':       'BF'
+		'BDI':       'BI'
+		'KHM':       'KH'
+		'CMR':       'CM'
+		'CPV':       'CV'
+		'CAF':       'CF'
+		'TCD':       'TD'
+		'COM':       'KM'
+		'COG':       'CG'
+		'COD':       'CD'
+		'CRI':       'CR'
+		'CYP':       'CY'
+		'DJI':       'DJ'
+		'SLV':       'SV'
+		'GNQ':       'GQ'
+		'ERI':       'ER'
+		'EST':       'EE'
+		'SWZ':       'SZ'
+		'FJI':       'FJ'
+		'GAB':       'GA'
+		'GMB':       'GM'
+		'GEO':       'GE'
+		'GIN':       'GN'
+		'GNB':       'GW'
+		'GUY':       'GY'
+		'HTI':       'HT'
+		'HND':       'HN'
+		'ISL':       'IS'
+		'IRQ':       'IQ'
+		'JAM':       'JM'
+		'JOR':       'JO'
+		'KIR':       'KI'
+		'PRK':       'KP'
+		'KWT':       'KW'
+		'KGZ':       'KG'
+		'LAO':       'LA'
+		'LVA':       'LV'
+		'LBN':       'LB'
+		'LSO':       'LS'
+		'LBR':       'LR'
+		'LBY':       'LY'
+		'LTU':       'LT'
+		'LUX':       'LU'
+		'MDG':       'MG'
+		'MWI':       'MW'
+		'MDV':       'MV'
+		'MLI':       'ML'
+		'MLT':       'MT'
+		'MHL':       'MH'
+		'MRT':       'MR'
+		'MUS':       'MU'
+		'FSM':       'FM'
+		'MDA':       'MD'
+		'MCO':       'MC'
+		'MNG':       'MN'
+		'MNE':       'ME'
+		'MOZ':       'MZ'
+		'MMR':       'MM'
+		'NAM':       'NA'
+		'NRU':       'NR'
+		'NPL':       'NP'
+		'NIC':       'NI'
+		'NER':       'NE'
+		'MKD':       'MK'
+		'OMN':       'OM'
+		'PLW':       'PW'
+		'PAN':       'PA'
+		'PRY':       'PY'
+		'WSM':       'WS'
+		'SMR':       'SM'
+		'STP':       'ST'
+		'SEN':       'SN'
+		'SYC':       'SC'
+		'SLE':       'SL'
+		'SLB':       'SB'
+		'SOM':       'SO'
+		'SSD':       'SS'
+		'SDN':       'SD'
+		'SUR':       'SR'
+		'SYR':       'SY'
+		'TLS':       'TL'
+		'TGO':       'TG'
+		'TON':       'TO'
+		'TTO':       'TT'
+		'TKM':       'TM'
+		'TUV':       'TV'
+		'UGA':       'UG'
+		'UKR':       'UA'
+		'URY':       'UY'
+		'UZB':       'UZ'
+		'VUT':       'VU'
+		'YEM':       'YE'
+		'ZMB':       'ZM'
+		'ZWE':       'ZW'
+		// OWID 特殊代码（无对应 ISO2，返回空串）
+		'WLD':       ''
+		'OWID_WRL':  ''
+		'OWID_HIC':  ''
+		'OWID_LIC':  ''
+		'OWID_LMC':  ''
+		'OWID_UMC':  ''
+		'OWID_CIS':  ''
+		'OWID_EU':   ''
+		'OWID_EFTA': ''
+		'OWID_NAM':  ''
+		'OWID_SAM':  ''
+		'OWID_CAF':  ''
+		'OWID_OCE':  ''
+		'OWID_AFR':  ''
+		'OWID_ASI':  ''
+		'OWID_EUR':  ''
+		'OWID_M49':  ''
+	}
+	return m[iso3] or { '' }
+}
+
+// format_large 格式化大数值，保留 2 位小数（Python .2f 风格）
 pub fn format_large(v f64) string {
 	if v == 0.0 {
 		return '-'
@@ -367,13 +775,8 @@ pub fn format_large(v f64) string {
 		div = 1e3
 		suffix = 'K'
 	} else {
-		return v.str().split('.')[0]
+		return '${v:.2f}'
 	}
 	q := v / div
-	parts := q.str().split('.')
-	// 整值（如恰好 1e12）无小数部分，直接返回避免越界
-	if parts.len < 2 {
-		return parts[0] + suffix
-	}
-	return parts[0] + '.' + parts[1][0..1] + suffix
+	return '${q:.2f}${suffix}'
 }

@@ -282,11 +282,11 @@ fn commodity_defs() []CommodityDef {
 			name:   '铜 (LME)'
 		},
 		CommodityDef{
-			symbol: 'hf_PL'
+			symbol: 'hf_XPT'
 			name:   '铂金 (NYMEX)'
 		},
 		CommodityDef{
-			symbol: 'hf_PA'
+			symbol: 'hf_XPD'
 			name:   '钯金 (NYMEX)'
 		},
 	]
@@ -375,8 +375,7 @@ fn fetch_one(s models.MarketSymbol) models.MarketQuote {
 
 // 腾讯接口：qt.gtimg.cn/q=sh600519  （GBK 编码）
 fn fetch_tencent(s models.MarketSymbol) ?models.MarketQuote {
-	raw := s.symbol.replace('hk', 'hk').replace('us', 'us').replace('sh', 'sh').replace('sz', 'sz')
-	url := 'https://qt.gtimg.cn/q=${raw}'
+	url := 'https://qt.gtimg.cn/q=${s.symbol}'
 	body := gbk_to_utf8(http_get(url, '') or { return none }.bytes())
 	// 格式：v_sh600519="1~贵州茅台~600519~...~price~prevclose~...~volume~..."
 	eq := body.index('="') or { return none }

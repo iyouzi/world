@@ -1,4 +1,4 @@
-module main 
+module main
 
 // Test data constants
 pub const indicators = []string{}

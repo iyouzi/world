@@ -13,7 +13,7 @@ echo "SRV=$SRV"
 sleep 8
 echo "--- curl health ---"
 for p in / /market/cn /country/US /category/imf_wEO /static/js/app.js; do
-  code=$(curl -s -m 6 -o /dev/null -w "%{http_code}" "http://127.0.0.1:8080$p")
+  code=$(curl -s -m 6 -o /dev/null -w "%{http_code}" "http://127.0.0.1:3003$p")
   echo "HTTP $code  $p"
 done
 echo "--- alive? ---"

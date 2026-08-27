@@ -2,6 +2,7 @@ module database
 
 import db.mysql
 import db.sqlite
+import log
 import models
 import os
 import time
@@ -10,8 +11,9 @@ import time
 // 由 main 中的 App 内嵌持有，不再使用全局变量。
 pub struct Database {
 pub mut:
-	db   mysql.DB
-	open bool
+	db     mysql.DB
+	open   bool
+	logger log.ThreadSafeLog
 }
 
 // connect 配置（可由环境变量覆盖）
@@ -55,11 +57,20 @@ pub fn (d &Database) handle() mysql.DB {
 	return d.db
 }
 
-// init_schema 创建所有表
+// table_exists 检查指定表是否已存在
+fn (d &Database) table_exists(name string) bool {
+	m := d.handle()
+	rows := m.exec("SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = '${sql_escape(name)}' LIMIT 1") or {
+		return false
+	}
+	return rows.len > 0
+}
+
+// init_schema 仅在表不存在时创建对应表（已存在则跳过，避免无谓重建）
 pub fn (mut d Database) init_schema() ! {
 	m := d.handle()
-	stmts := [
-		'CREATE TABLE IF NOT EXISTS countries (
+	stmts := {
+		'countries':     'CREATE TABLE countries (
 			id INT AUTO_INCREMENT PRIMARY KEY,
 			iso2 VARCHAR(4) NOT NULL UNIQUE,
 			iso3 VARCHAR(4),
@@ -67,8 +78,8 @@ pub fn (mut d Database) init_schema() ! {
 			region VARCHAR(80),
 			income VARCHAR(40),
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
-		'CREATE TABLE IF NOT EXISTS indicators (
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
+		'indicators':    'CREATE TABLE indicators (
 			id INT AUTO_INCREMENT PRIMARY KEY,
 			source VARCHAR(20) NOT NULL,
 			country_iso VARCHAR(4) NOT NULL,
@@ -81,8 +92,8 @@ pub fn (mut d Database) init_schema() ! {
 			UNIQUE KEY uq_ind (source, country_iso, indicator, year),
 			INDEX idx_ind_country (country_iso),
 			INDEX idx_ind_src (source, indicator)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
-		'CREATE TABLE IF NOT EXISTS market_quotes (
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
+		'market_quotes': 'CREATE TABLE market_quotes (
 			id INT AUTO_INCREMENT PRIMARY KEY,
 			symbol VARCHAR(20) NOT NULL UNIQUE,
 			name VARCHAR(120),
@@ -94,8 +105,8 @@ pub fn (mut d Database) init_schema() ! {
 			volume BIGINT,
 			source VARCHAR(20),
 			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
-		'CREATE TABLE IF NOT EXISTS fetch_logs (
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
+		'fetch_logs':    'CREATE TABLE fetch_logs (
 			id INT AUTO_INCREMENT PRIMARY KEY,
 			source VARCHAR(20),
 			status VARCHAR(20),
@@ -103,14 +114,19 @@ pub fn (mut d Database) init_schema() ! {
 			records INT DEFAULT 0,
 			started_at DATETIME,
 			duration_ms INT DEFAULT 0
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
-	]
-	for s in stmts {
-		m.exec(s) or { return error('建表失败: ${err}') }
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
+	}
+	for name, stmt in stmts {
+		if d.table_exists(name) {
+			log_line('schema', '表已存在，跳过创建: ${name}')
+			continue
+		}
+		m.exec(stmt) or { return error('建表失败 (${name}): ${err}') }
+		log_line('schema', '已创建表: ${name}')
 	}
 }
 
-// ensure_database 若指定数据库不存在则创建（用于全新部署）
+// ensure_database 若指定数据库不存在则创建（用于全新部署），已存在则跳过
 pub fn ensure_database() ! {
 	cfg := config()
 	mut m := mysql.connect(mysql.Config{
@@ -121,10 +137,17 @@ pub fn ensure_database() ! {
 		dbname:   'mysql'
 	}) or { return error('连接系统库失败: ${err}') }
 	dbname := cfg.dbname
-	q := 'CREATE DATABASE IF NOT EXISTS ' + dbname +
-		' CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci'
-	m.exec(q) or { return error('创建数据库失败 (${q}): ${err}') }
-	log_line('boot', '确保数据库存在: ${dbname}')
+	// 仅当库不存在时创建，避免每次启动都执行 CREATE DATABASE
+	exists_rows := m.exec("SELECT 1 FROM information_schema.schemata WHERE schema_name = '${sql_escape(dbname)}' LIMIT 1") or {
+		[]mysql.Row{}
+	}
+	if exists_rows.len == 0 {
+		q := 'CREATE DATABASE ' + dbname + ' CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci'
+		m.exec(q) or { return error('创建数据库失败 (${q}): ${err}') }
+		log_line('boot', '已创建数据库: ${dbname}')
+	} else {
+		log_line('boot', '数据库已存在，跳过创建: ${dbname}')
+	}
 	m.close() or {}
 }
 
@@ -142,22 +165,18 @@ pub fn log_file_path() string {
 	return os.join_path(os.dir(os.executable()), 'world_app.log')
 }
 
-// log_line 运行期日志：带时间戳写入程序目录下的 world_app.log，并同步输出到 stderr。
-// 所有启动步骤 / 抓取成功失败 / 异常都必须经过这里，保证"数据有没有取到"一眼可见。
-// format_datetime 统一日志时间格式：MySQL DATETIME 兼容（YYYY-MM-DD HH:MM:SS，无 T/Z）
-fn format_datetime(t time.Time) string {
-	// 手工拼接，避免 format_rfc3339 带 T/Z 被 MySQL 拒绝，也避免 format_ss 在旧版 V 不存在
-	y := t.year
-	m := int(t.month)
-	d := t.day
-	h := t.hour
-	mi := t.minute
-	s := t.second
-	return '${y:04d}-${m:02d}-${d:02d} ${h:02d}:${mi:02d}:${s:02d}'
+// init_log 初始化日志文件（V log 模块，UTF-8 编码）。
+// 必须在 main() 最早调用，之后 log_fetch 等方法会使用 logger。
+pub fn (mut d Database) init_log() {
+	d.logger.set_output_path(log_file_path())
+	d.logger.set_always_flush(true)
+	println('[log] 日志已初始化: ${log_file_path()}')
 }
 
+// log_line 运行期日志：同步输出到 stderr 并写入 world_app.log（UTF-8）。
+// 所有启动步骤 / 抓取成功失败 / 异常都必须经过这里。
 pub fn log_line(tag string, msg string) {
-	line := '[${format_datetime(time.now())}] [${tag}] ${msg}'
+	line := '[${tag}] ${msg}'
 	eprintln(line)
 	mut f := os.open_file(log_file_path(), 'a', 0o644) or { return }
 	f.write_string('${line}\n') or {}
@@ -167,9 +186,21 @@ pub fn log_line(tag string, msg string) {
 pub fn (d &Database) log_fetch(source string, status string, message string, records int, duration_ms int) {
 	log_line(source, '${status}: ${message} (${records} 条, ${duration_ms}ms)')
 	m := d.handle()
-	m.exec("INSERT INTO fetch_logs (source, status, message, records, started_at, duration_ms) VALUES ('${sql_escape(source)}', '${sql_escape(status)}', '${sql_escape(message)}', ${records}, '${format_datetime(time.now())}', ${duration_ms})") or {
+	now_str := format_datetime(time.now())
+	m.exec("INSERT INTO fetch_logs (source, status, message, records, started_at, duration_ms) VALUES ('${sql_escape(source)}', '${sql_escape(status)}', '${sql_escape(message)}', ${records}, '${now_str}', ${duration_ms})") or {
 		log_line('fetch', '写入 fetch_logs 失败: $err')
 	}
+}
+
+// format_datetime 统一日志时间格式：MySQL DATETIME 兼容（YYYY-MM-DD HH:MM:SS，无 T/Z）
+fn format_datetime(t time.Time) string {
+	y := t.year
+	m := int(t.month)
+	d := t.day
+	h := t.hour
+	mi := t.minute
+	s := t.second
+	return '${y:04d}-${m:02d}-${d:02d} ${h:02d}:${mi:02d}:${s:02d}'
 }
 
 // sql_escape 安全转义：反斜杠优先（避免 '→\' 再次被解释），单/双引号，控制字符。
@@ -417,20 +448,20 @@ pub fn (d &Database) get_indicator_top(source string, indicator string, limit in
 // JOIN countries 表带回国家名称，避免同国家多年数据重复出现。
 pub fn (d &Database) get_country_indicator_top(source string, indicator string, limit int) ![]models.CountryGdp {
 	m := d.handle()
-	q := "SELECT c.iso2, c.name, i.value, i.year FROM indicators i " +
-		"JOIN countries c ON c.iso2 = i.country_iso " +
+	q := 'SELECT c.iso2, c.name, i.value, i.year FROM indicators i ' +
+		'JOIN countries c ON c.iso2 = i.country_iso ' +
 		"WHERE i.source = '${sql_escape(source)}' AND i.indicator = '${sql_escape(indicator)}' " +
 		"AND i.year = (SELECT MAX(year) FROM indicators i2 WHERE i2.country_iso = i.country_iso AND i2.source = '${sql_escape(source)}' AND i2.indicator = '${sql_escape(indicator)}') " +
-		"ORDER BY i.value DESC LIMIT ${limit}"
+		'ORDER BY i.value DESC LIMIT ${limit}'
 	rows := m.exec(q) or { return []models.CountryGdp{} }
 	mut out := []models.CountryGdp{}
 	for r in rows {
 		v := r.vals
 		out << models.CountryGdp{
-			iso2:  v[0],
-			name:  v[1],
-			value: v[2].f64(),
-			year:  v[3].int(),
+			iso2:  v[0]
+			name:  v[1]
+			value: v[2].f64()
+			year:  v[3].int()
 		}
 	}
 	return out
@@ -441,20 +472,20 @@ pub fn (d &Database) get_country_indicator_top(source string, indicator string, 
 pub fn (d &Database) get_country_gdp_top(limit int) ![]models.CountryGdp {
 	m := d.handle()
 	// 子查询：每个国家取最新年份的记录，外层按 value 排序
-	q := "SELECT c.iso2, c.name, i.value, i.year FROM indicators i " +
-		"JOIN countries c ON c.iso2 = i.country_iso " +
+	q := 'SELECT c.iso2, c.name, i.value, i.year FROM indicators i ' +
+		'JOIN countries c ON c.iso2 = i.country_iso ' +
 		"WHERE i.source = 'worldbank' AND i.indicator = 'NY.GDP.MKTP.CD' " +
 		"AND i.year = (SELECT MAX(year) FROM indicators i2 WHERE i2.country_iso = i.country_iso AND i2.source = 'worldbank' AND i2.indicator = 'NY.GDP.MKTP.CD') " +
-		"ORDER BY i.value DESC LIMIT ${limit}"
+		'ORDER BY i.value DESC LIMIT ${limit}'
 	rows := m.exec(q) or { return []models.CountryGdp{} }
 	mut out := []models.CountryGdp{}
 	for r in rows {
 		v := r.vals
 		out << models.CountryGdp{
-			iso2:  v[0],
-			name:  v[1],
-			value: v[2].f64(),
-			year:  v[3].int(),
+			iso2:  v[0]
+			name:  v[1]
+			value: v[2].f64()
+			year:  v[3].int()
 		}
 	}
 	return out
@@ -489,29 +520,35 @@ pub fn (d &Database) get_world_stats() !models.WorldStats {
 	// 世界总 GDP：优先用 WLD（WorldBank 官方汇总），回退到各国累加
 	ws.total_gdp = d.get_wld_indicator_value('NY.GDP.MKTP.CD')
 	if ws.total_gdp == 0 {
-		rows2 := m.exec("SELECT SUM(value) AS s FROM indicators WHERE source='worldbank' AND indicator='NY.GDP.MKTP.CD'") or { return ws }
+		rows2 := m.exec("SELECT SUM(value) AS s FROM indicators WHERE source='worldbank' AND indicator='NY.GDP.MKTP.CD'") or {
+			return ws
+		}
 		if rows2.len > 0 { ws.total_gdp = to_f(rows2[0].vals[0]) }
 	}
 	// 世界人口：优先 WLD，回退累加
 	ws.total_population = d.get_wld_indicator_value('SP.POP.TOTL')
 	if ws.total_population == 0 {
-		rows2 := m.exec("SELECT SUM(value) AS s FROM indicators WHERE source='worldbank' AND indicator='SP.POP.TOTL'") or { return ws }
+		rows2 := m.exec("SELECT SUM(value) AS s FROM indicators WHERE source='worldbank' AND indicator='SP.POP.TOTL'") or {
+			return ws
+		}
 		if rows2.len > 0 { ws.total_population = to_f(rows2[0].vals[0]) }
 	}
 	// 平均预期寿命：用 WLD 最新值，回退各国平均
 	ws.avg_life = d.get_wld_indicator_value('SP.DYN.LE00.IN')
 	if ws.avg_life == 0 {
-		rows3 := m.exec("SELECT AVG(value) AS s FROM indicators WHERE source='worldbank' AND indicator='SP.DYN.LE00.IN'") or { return ws }
+		rows3 := m.exec("SELECT AVG(value) AS s FROM indicators WHERE source='worldbank' AND indicator='SP.DYN.LE00.IN'") or {
+			return ws
+		}
 		if rows3.len > 0 { ws.avg_life = to_f(rows3[0].vals[0]) }
 	}
 	// WLD 补充指标（可选，无数据时保持 0）
-	ws.gdp_per_capita  = d.get_wld_indicator_value('NY.GDP.PCAP.KD')
-	ws.inflation       = d.get_wld_indicator_value('FP.CPI.TOTL.ZG')
-	ws.unemployment    = d.get_wld_indicator_value('SL.UEM.TOTL.NE.ZS')
-	ws.internet_users  = d.get_wld_indicator_value('IT.NET.USER.ZS')
+	ws.gdp_per_capita = d.get_wld_indicator_value('NY.GDP.PCAP.KD')
+	ws.inflation = d.get_wld_indicator_value('FP.CPI.TOTL.ZG')
+	ws.unemployment = d.get_wld_indicator_value('SL.UEM.TOTL.NE.ZS')
+	ws.internet_users = d.get_wld_indicator_value('IT.NET.USER.ZS')
 	ws.education_spend = d.get_wld_indicator_value('SE.XPD.TOTL.GD.ZS')
-	ws.health_spend    = d.get_wld_indicator_value('SH.XPD.CHEX.GD.ZS')
-	ws.energy_use      = d.get_wld_indicator_value('EG.USE.PCAP.KG.OE')
+	ws.health_spend = d.get_wld_indicator_value('SH.XPD.CHEX.GD.ZS')
+	ws.energy_use = d.get_wld_indicator_value('EG.USE.PCAP.KG.OE')
 	rows4 := m.exec('SELECT MAX(updated_at) AS s FROM indicators') or { return ws }
 	if rows4.len > 0 {
 		ws.last_update = rows4[0].vals[0]
@@ -609,4 +646,160 @@ pub fn (d &Database) recent_logs(limit int) ![]models.FetchLog {
 		}
 	}
 	return out
+}
+
+// ============ OWID 数据导入与查询 ============
+
+// import_owid_csv 从 CSV 文件导入 OWID 数据到 indicators 表（source='owid'）。
+// csv_path: CSV 文件路径；indicator_code: 指标代码（如 'population'）；
+// label: 指标中文名；unit: 单位；column_name: CSV 数值列名（空则用第 4 列）。
+pub fn (mut d Database) import_owid_csv(csv_path string, indicator_code string, label string, unit string, column_name string) !int {
+	m := d.handle()
+	csv_text := os.read_file(csv_path) or { return error('读取 CSV 失败: ${err}') }
+	lines := csv_text.split('\n')
+	if lines.len < 2 {
+		return error('CSV 文件为空或仅有表头')
+	}
+	// 解析表头，确定数值列索引
+	header := lines[0].split(',')
+	mut val_col := 3 // 默认第 4 列
+	if column_name != '' {
+		for i, col in header {
+			if col.trim_space() == column_name {
+				val_col = i
+				break
+			}
+		}
+	}
+	mut count := 0
+	mut skipped := 0
+	for line_idx := 1; line_idx < lines.len; line_idx++ {
+		line := lines[line_idx].trim_space()
+		if line == '' {
+			continue
+		}
+		parts := line.split(',')
+		if parts.len < 4 {
+			skipped++
+			continue
+		}
+		entity_name := sql_escape(parts[0].trim_space())
+		iso3_code := parts[1].trim_space()
+		year_str := parts[2].trim_space()
+		val_str := if val_col < parts.len { parts[val_col].trim_space() } else { '' }
+		if val_str == '' || val_str == 'nan' || val_str == 'N/A' || val_str == 'NaN' {
+			skipped++
+			continue
+		}
+		year := year_str.int()
+		if year < 1000 || year > 2100 {
+			skipped++
+			continue
+		}
+		value := val_str.f64()
+		if value == 0 && val_str != '0' && val_str != '0.0' {
+			skipped++
+			continue
+		}
+		// ISO3 → ISO2 转换
+		mut iso2 := models.iso3_to_iso2(iso3_code)
+		if iso2 == '' {
+			// 空 code 或聚合实体（如 WLD、ASEAN）跳过
+			if iso3_code.len < 2 {
+				skipped++
+				continue
+			}
+			// 可能是 ISO2 直写（非标准但兼容）
+			if iso3_code.len == 2 && models.iso3_to_iso2(iso3_code) == iso3_code {
+				iso2 = iso3_code
+			} else {
+				skipped++
+				continue
+			}
+		}
+		country_iso := if iso2 != '' { iso2 } else { iso3_code }
+		// 确保国家存在于 countries 表
+		d.ensure_country(country_iso, entity_name, iso3_code)
+		// 插入或更新 indicators（使用 INSERT IGNORE 避免重复）
+		q := 'INSERT INTO indicators (source, country_iso, indicator, label, year, value, unit) ' +
+			"VALUES ('owid', '${sql_escape(country_iso)}', '${sql_escape(indicator_code)}', " + "'${sql_escape(label)}', ${year}, ${value}, '${sql_escape(unit)}') " +
+			'ON DUPLICATE KEY UPDATE value=VALUES(value), updated_at=CURRENT_TIMESTAMP'
+		m.exec(q) or { continue }
+		count++
+	}
+	return count
+}
+
+// ensure_country 确保国家存在于 countries 表（已存在则跳过，避免无谓写入）
+fn (mut d Database) ensure_country(iso2 string, name string, iso3 string) {
+	if iso2 == '' {
+		return
+	}
+	m := d.handle()
+	rows := m.exec("SELECT 1 FROM countries WHERE iso2 = '${sql_escape(iso2)}' LIMIT 1") or {
+		[]mysql.Row{}
+	}
+	if rows.len > 0 {
+		return
+	}
+	q := 'INSERT INTO countries (iso2, iso3, name, region, income) ' +
+		"VALUES ('${sql_escape(iso2)}', '${sql_escape(iso3)}', '${sql_escape(name)}', '', '')"
+	m.exec(q) or {}
+}
+
+// get_owid_indicators 获取 OWID 某主题下的指标数据（按国家、年份降序）
+pub fn (d &Database) get_owid_indicators(topic_slug string, limit int) ![]models.Indicator {
+	m := d.handle()
+	// 根据主题筛选指标代码
+	indicators := models.owid_indicators()
+	mut ind_codes := []string{}
+	for ind in indicators {
+		if ind.topic_slug == topic_slug {
+			ind_codes << ind.slug
+		}
+	}
+	if ind_codes.len == 0 {
+		return []models.Indicator{}
+	}
+	mut conditions := []string{}
+	for code in ind_codes {
+		conditions << "indicator = '${sql_escape(code)}'"
+	}
+	where := conditions.join(' OR ')
+	q := 'SELECT id, source, country_iso, indicator, label, year, value, unit, updated_at ' +
+		"FROM indicators WHERE source = 'owid' AND (${where}) " + 'ORDER BY year DESC, country_iso LIMIT ${limit}'
+	rows := m.exec(q) or { return []models.Indicator{} }
+	return parse_indicators(rows)
+}
+
+// get_owid_indicator_top 获取 OWID 某指标的 Top N（按最新年份、值降序）
+pub fn (d &Database) get_owid_indicator_top(indicator string, limit int) ![]models.Indicator {
+	m := d.handle()
+	q := 'SELECT id, source, country_iso, indicator, label, year, value, unit, updated_at ' +
+		"FROM indicators WHERE source = 'owid' AND indicator = '${sql_escape(indicator)}' " +
+		'AND year = (SELECT MAX(year) FROM indicators i2 WHERE i2.country_iso = indicators.country_iso ' +
+		"AND i2.source = 'owid' AND i2.indicator = '${sql_escape(indicator)}') " +
+		'ORDER BY value DESC LIMIT ${limit}'
+	rows := m.exec(q) or { return []models.Indicator{} }
+	return parse_indicators(rows)
+}
+
+// get_owid_country_indicators 获取某国家的全部 OWID 指标
+pub fn (d &Database) get_owid_country_indicators(iso2 string) ![]models.Indicator {
+	m := d.handle()
+	q := 'SELECT id, source, country_iso, indicator, label, year, value, unit, updated_at ' +
+		"FROM indicators WHERE source = 'owid' AND country_iso = '${sql_escape(iso2)}' " +
+		'ORDER BY indicator, year DESC'
+	rows := m.exec(q) or { return []models.Indicator{} }
+	return parse_indicators(rows)
+}
+
+// count_owid_indicators 统计 OWID 指标数量
+pub fn (d &Database) count_owid_indicators() !int {
+	m := d.handle()
+	rows := m.exec("SELECT COUNT(*) FROM indicators WHERE source = 'owid'") or { return 0 }
+	if rows.len == 0 {
+		return 0
+	}
+	return to_i(rows[0].vals[0])
 }

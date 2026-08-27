@@ -2,6 +2,7 @@ module fetch
 
 import time
 import database
+import models
 
 // 世界银行指标定义（整合自 worldbank_info attachment）
 struct WBIndicator {
@@ -283,7 +284,7 @@ fn iso3_to_iso2(iso3 string) string {
 		'CUB': 'CU'
 		'DOM': 'DO'
 	}
-	return m[iso3] or { iso3[0..2] }
+	return m[iso3] or { models.iso3_to_iso2(iso3) }
 }
 
 // fetch_worldbank 抓取世界银行数据并写入 MySQL。
@@ -359,16 +360,56 @@ fn fetch_wb_value(iso3 string, indicator string) WBValue {
 pub fn fetch_wld(dbconn &database.Database) !int {
 	m := dbconn.handle()
 	mut wld_inds := []WBIndicator{}
-	wld_inds << WBIndicator{code: 'NY.GDP.MKTP.CD', label: 'GDP', unit: 'USD'}
-	wld_inds << WBIndicator{code: 'SP.POP.TOTL', label: 'Population', unit: 'people'}
-	wld_inds << WBIndicator{code: 'SP.DYN.LE00.IN', label: 'Life expectancy', unit: 'years'}
-	wld_inds << WBIndicator{code: 'NY.GDP.PCAP.KD', label: 'GDP per capita', unit: 'USD'}
-	wld_inds << WBIndicator{code: 'FP.CPI.TOTL.ZG', label: 'Inflation %', unit: '%'}
-	wld_inds << WBIndicator{code: 'SL.UEM.TOTL.NE.ZS', label: 'Unemployment %', unit: '%'}
-	wld_inds << WBIndicator{code: 'IT.NET.USER.ZS', label: 'Internet users %', unit: '%'}
-	wld_inds << WBIndicator{code: 'SE.XPD.TOTL.GD.ZS', label: 'Education spending %', unit: '%GDP'}
-	wld_inds << WBIndicator{code: 'SH.XPD.CHEX.GD.ZS', label: 'Health spending %', unit: '%GDP'}
-	wld_inds << WBIndicator{code: 'EG.USE.PCAP.KG.OE', label: 'Energy use', unit: 'kg'}
+	wld_inds << WBIndicator{
+		code:  'NY.GDP.MKTP.CD'
+		label: 'GDP'
+		unit:  'USD'
+	}
+	wld_inds << WBIndicator{
+		code:  'SP.POP.TOTL'
+		label: 'Population'
+		unit:  'people'
+	}
+	wld_inds << WBIndicator{
+		code:  'SP.DYN.LE00.IN'
+		label: 'Life expectancy'
+		unit:  'years'
+	}
+	wld_inds << WBIndicator{
+		code:  'NY.GDP.PCAP.KD'
+		label: 'GDP per capita'
+		unit:  'USD'
+	}
+	wld_inds << WBIndicator{
+		code:  'FP.CPI.TOTL.ZG'
+		label: 'Inflation %'
+		unit:  '%'
+	}
+	wld_inds << WBIndicator{
+		code:  'SL.UEM.TOTL.NE.ZS'
+		label: 'Unemployment %'
+		unit:  '%'
+	}
+	wld_inds << WBIndicator{
+		code:  'IT.NET.USER.ZS'
+		label: 'Internet users %'
+		unit:  '%'
+	}
+	wld_inds << WBIndicator{
+		code:  'SE.XPD.TOTL.GD.ZS'
+		label: 'Education spending %'
+		unit:  '%GDP'
+	}
+	wld_inds << WBIndicator{
+		code:  'SH.XPD.CHEX.GD.ZS'
+		label: 'Health spending %'
+		unit:  '%GDP'
+	}
+	wld_inds << WBIndicator{
+		code:  'EG.USE.PCAP.KG.OE'
+		label: 'Energy use'
+		unit:  'kg'
+	}
 	mut inserted := 0
 	for ind in wld_inds {
 		v := fetch_wb_value('WLD', ind.code)

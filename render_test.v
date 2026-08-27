@@ -4,14 +4,14 @@ import models
 
 fn test_fmt2() {
 	assert fmt2(3.14159) == '3.14'
-	// 最多保留 2 位小数；不足时不补零
-	assert fmt2(5.0) == '5.0'
-	assert fmt2(-2.5) == '-2.5'
-	assert fmt2(12.3456) == '12.34'
+	// 恰好 2 位小数；不足补零
+	assert fmt2(5.0) == '5.00'
+	assert fmt2(-2.5) == '-2.50'
+	assert fmt2(12.3456) == '12.35'
 }
 
 fn test_page_shell_contains_assets_and_title() {
-	html := page_shell('测试标题', models.WorldStats{}, '', '')
+	html := page_shell('测试标题', models.WorldStats{}, '', '', .zh)
 	assert html.contains('<title>测试标题 | WorldApp</title>')
 	assert html.contains('/static/css/style.css')
 	assert html.contains('/static/js/app.js')
@@ -20,7 +20,7 @@ fn test_page_shell_contains_assets_and_title() {
 }
 
 fn test_sidebar_html_lists_categories_and_search() {
-	sb := sidebar_html('wb_overview', 'china')
+	sb := sidebar_html('wb_overview', 'china', models.all_categories(), .zh)
 	// 搜索框回填
 	assert sb.contains('value="china"')
 	// 分类链接齐全
@@ -38,7 +38,7 @@ fn test_sidebar_html_lists_categories_and_search() {
 // 边栏必须位于主内容之后（右侧），便于鼠标操作
 fn test_page_shell_sidebar_on_right() {
 	html := page_shell('t', models.WorldStats{}, '<aside class="sidebar">S</aside>',
-		'<main>M</main>')
+		'<main>M</main>', .zh)
 	si := html.index('<aside') or { -1 }
 	mi := html.index('<main class="content">') or { -1 }
 	assert si != -1 && mi != -1
@@ -48,10 +48,9 @@ fn test_page_shell_sidebar_on_right() {
 // IMF / 行情页空数据时给出可读提示而不是空白表格
 fn test_market_meta_covers_all_markets() {
 	for m in ['cn', 'hk', 'us', 'index', 'fx', 'commodity'] {
-		title, sub, icon := market_meta(m)
+		title, sub := market_meta(m, .zh)
 		assert title != ''
 		assert sub != ''
-		assert icon != ''
 	}
 }
 
@@ -69,7 +68,7 @@ fn test_h_escape_html_injection_payloads() {
 }
 
 fn test_sidebar_search_escapes_xss_payload() {
-	sb := sidebar_html('wb_overview', '"><script>alert(1)</script>')
+	sb := sidebar_html('wb_overview', '"><script>alert(1)</script>', [], .zh)
 	// 原始脚本串绝不能直接出现在 value 属性中（会被解释为属性闭合+脚本）
 	assert !sb.contains('"><script>')
 	// 搜索框 value 必须是经过转义的形式
@@ -88,7 +87,7 @@ fn test_js_str_blocks_script_closer() {
 
 // 标题若包含 HTML 注入字符不会泄漏到 <title> 标签外
 fn test_page_shell_title_xss_escaped() {
-	html := page_shell('</title><script>alert(1)</script>', models.WorldStats{}, '', '')
+	html := page_shell('</title><script>alert(1)</script>', models.WorldStats{}, '', '', .zh)
 	assert !html.contains('<script>alert(1)</script>')
 	assert html.contains('&lt;/title&gt;&lt;script&gt;alert(1)&lt;/script&gt;')
 }
