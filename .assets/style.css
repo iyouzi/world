@@ -1,5 +1,13 @@
-/* ========== Design Tokens (Light/Dark 双主题，默认深色) ========== */
-:root {
+/* ========== Design Tokens (Light/Dark 双主题) ==========
+   深色为显式状态 [data-theme="dark"]，浅色为默认/其他状态。
+   切换 data-theme 即可翻转整个 html 的背景与文字色（修复点：
+   原先深色写死在 :root 上、html 无自身背景，导致 toggle 无效）。 */
+html {
+  background: var(--bg);
+  color: var(--text);
+  transition: var(--transition-theme);
+}
+html[data-theme="dark"] {
   --bg: #0f1420;
   --bg-alt: #0b0f18;
   --panel: #171d2b;
@@ -18,28 +26,25 @@
   --border-soft: #212a3d;
   --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.12);
   --shadow-hover: 0 2px 4px rgba(0,0,0,.35), 0 16px 32px rgba(0,0,0,.18);
-  --radius: 8px;
-  --radius-card: 12px;
-  --radius-pill: 999px;
-  --ease: cubic-bezier(.4,0,.2,1);
-  --trans: 160ms var(--ease);
-  --trans-slow: 280ms var(--ease);
-  --font: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", Roboto, sans-serif;
-  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
-  --transition-theme: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
+:root,
 :root[data-theme="light"] {
   --bg: #f5f7fb;
   --bg-alt: #eef1f7;
   --panel: #ffffff;
   --panel-2: #f0f3f9;
   --panel-hover: #e5ebf6;
+  --brand: #4f8cff;
+  --brand-2: #22c55e;
+  --brand-soft: rgba(79, 140, 255, .12);
   --text: #1a2130;
   --text-muted: #5b6478;
-  --border: #e4e8f0;
-  --border-soft: #eef1f7;
   --up: #ef4444;
   --down: #16a34a;
+  --warn: #f59e0b;
+  --danger: #ef4444;
+  --border: #e4e8f0;
+  --border-soft: #eef1f7;
   --shadow: 0 1px 2px rgba(20,30,60,.06), 0 8px 24px rgba(20,30,60,.04);
   --shadow-hover: 0 2px 4px rgba(20,30,60,.08), 0 16px 32px rgba(20,30,60,.06);
 }

@@ -264,3 +264,50 @@ listening on http://[::]:8080/
 [commodity] success: 更新 8 个商品品种 (8 条, 380ms)
 [background] commodity 完成: 8
 [boot] 已通过 cmd.exe 打开浏览器: http://localhost:3003
+[boot] 初始化 MySQL...
+[boot] 数据库已存在，跳过创建: all_in_one
+[schema] 表已存在，跳过创建: countries
+[schema] 表已存在，跳过创建: indicators
+[schema] 表已存在，跳过创建: market_quotes
+[schema] 表已存在，跳过创建: fetch_logs
+[boot] MySQL 连接成功
+[import] 库中已有数据 (countries=297, quotes=48)，跳过 SQLite 导入
+[boot] WA_NO_BROWSER 已设置，跳过自动打开浏览器
+[market] success: 更新 10 个行情标的 (10 条, 1488ms)
+[background] market 完成: 10
+[fx] success: 更新 11 个货币对汇率 (11 条, 1586ms)
+[background] fx 完成: 11
+[commodity] success: 更新 8 个商品品种 (8 条, 320ms)
+[background] commodity 完成: 8
+[boot] 初始化 MySQL...
+[boot] 数据库已存在，跳过创建: all_in_one
+[schema] 表已存在，跳过创建: countries
+[schema] 表已存在，跳过创建: indicators
+[schema] 表已存在，跳过创建: market_quotes
+[schema] 表已存在，跳过创建: fetch_logs
+[boot] MySQL 连接成功
+[import] 库中已有数据 (countries=297, quotes=48)，跳过 SQLite 导入
+[background] 开始抓取全部数据源...
+�打开浏览器
+[market] success: 更新 10 个行情标的 (10 条, 1441ms)
+[background] market 完成: 10
+[fx] success: 更新 11 个货币对汇率 (11 条, 2296ms)
+[background] fx 完成: 11
+[commodity] success: 更新 8 个商品品种 (8 条, 386ms)
+[background] commodity 完成: 8
+[boot] 初始化 MySQL...
+[boot] 数据库已存在，跳过创建: all_in_one
+[schema] 表已存在，跳过创建: countries
+[schema] 表已存在，跳过创建: indicators
+[schema] 表已存在，跳过创建: market_quotes
+[schema] 表已存在，跳过创建: fetch_logs
+[boot] MySQL 连接成功
+[import] 库中已有数据 (countries=297, quotes=48)，跳过 SQLite 导入
+[background] 开始抓取全部数据源...
+[market] success: 更新 10 个行情标的 (10 条, 1375ms)
+[background] market 完成: 10
+[fx] success: 更新 11 个货币对汇率 (11 条, 1465ms)
+[background] fx 完成: 11
+[commodity] success: 更新 8 个商品品种 (8 条, 357ms)
+[background] commodity 完成: 8
+[boot] 已通过 cmd.exe 打开浏览器: http://localhost:3003
