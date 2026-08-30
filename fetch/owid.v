@@ -73,7 +73,7 @@ pub fn fetch_owid(db database.Database) !int {
 // download_owid_csv 从 OWID Chart API 下载单个 CSV 文件到运行时缓存。
 fn download_owid_csv(slug string) ! {
 	url := 'https://ourworldindata.org/grapher/${slug}.csv?csvType=full&useColumnShortNames=true'
-	resp := http_get(url, '') or { return error('下载失败: ${err}') }
+	resp := http_get_timeout(url, '', 30_000_000) or { return error('下载失败: ${err}') }
 	if resp.len < 50 {
 		return error('响应过短，可能无效')
 	}

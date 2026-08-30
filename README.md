@@ -565,6 +565,20 @@ MYSQL_HOST=127.0.0.1 ./world_app
 - **SQL 安全**：搜索/插入统一走 `sql_escape()`，market 写入改用参数化 `sql` 块。
 - 依赖本地 MySQL 的集成测试与建库脚本补齐，`v fmt` + `v build` 在 WSL 验证通过。
 
+### v0.3.1 (2026-08-30)
+
+- **IMF API 格式变更修复**：`fetch/imf.v` 的 `fetch_imf_dataset` 更新解析逻辑，适配新版 DataMapper API 响应格式 `{"values":{"DATASET":{"ISO2":{"YEAR":value}}}}`。
+- **OWID 下载超时修复**：`fetch/owid.v` 的 `download_owid_csv` 改用 `http_get_timeout` 30s 超时，避免大 CSV 文件下载失败。
+- **默认深色主题**：CSS `:root` 定义深色变量，JS 默认读取 localStorage 为深色，右上角 ☀️/🌙 切换并持久化。
+- **CSS 变量完整定义**：在 `:root` 集中定义 `--radius`、`--trans`、`--font`、`--transition-theme`、`--ease` 等所有自定义属性，修复样式缺失问题。
+
+> **English:**
+> ### v0.3.1 (2026-08-30)
+> - **IMF API format change fix**: Updated `fetch_imf_dataset` in `fetch/imf.v` to parse the new DataMapper API response format `{"values":{"DATASET":{"ISO2":{"YEAR":value}}}}`.
+> - **OWID download timeout fix**: Changed `download_owid_csv` in `fetch/owid.v` to use `http_get_timeout` with 30s timeout to avoid large CSV download failures.
+> - **Default dark theme**: CSS `:root` defines dark mode variables, JS defaults to dark mode from localStorage, top-right ☀️/🌙 toggle with persistence.
+> - **Complete CSS custom properties**: All `var(--*)` variables (`--radius`, `--trans`, `--font`, `--transition-theme`, `--ease`, etc.) now defined in `:root` to prevent missing variable style issues.
+
 > **English:**
 > ### v0.3.0 (2026-08)
 > - **Port 8080 → 3003**: `veb.run_at(..., port: 3003)`, startup banner, auto-open URL, and README / AGENTS.md / `_tmp_launch.sh` / `_tmp_restart.sh` all updated.

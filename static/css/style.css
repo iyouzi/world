@@ -1,13 +1,8 @@
 /* ========== Design Tokens (Light/Dark 双主题) ==========
-   深色为显式状态 [data-theme="dark"]，浅色为默认/其他状态。
-   切换 data-theme 即可翻转整个 html 的背景与文字色（修复点：
-   原先深色写死在 :root 上、html 无自身背景，导致 toggle 无效）。 */
-html {
-  background: var(--bg);
-  color: var(--text);
-  transition: var(--transition-theme);
-}
-html[data-theme="dark"] {
+   深色为默认（:root），浅色为显式状态 [data-theme="light"]。
+   切换 data-theme 即可翻转整个 html 的背景与文字色。 */
+:root,
+:root[data-theme="dark"] {
   --bg: #0f1420;
   --bg-alt: #0b0f18;
   --panel: #171d2b;
@@ -26,8 +21,16 @@ html[data-theme="dark"] {
   --border-soft: #212a3d;
   --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.12);
   --shadow-hover: 0 2px 4px rgba(0,0,0,.35), 0 16px 32px rgba(0,0,0,.18);
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --radius: 8px;
+  --radius-card: 12px;
+  --radius-pill: 999px;
+  --trans: 150ms;
+  --trans-slow: 250ms;
+  --transition-theme: background 250ms ease, color 250ms ease, border-color 250ms ease;
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
 }
-:root,
 :root[data-theme="light"] {
   --bg: #f5f7fb;
   --bg-alt: #eef1f7;
@@ -48,22 +51,27 @@ html[data-theme="dark"] {
   --shadow: 0 1px 2px rgba(20,30,60,.06), 0 8px 24px rgba(20,30,60,.04);
   --shadow-hover: 0 2px 4px rgba(20,30,60,.08), 0 16px 32px rgba(20,30,60,.06);
 }
-@media (prefers-color-scheme: light) {
+@media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
-    --bg: #f5f7fb;
-    --bg-alt: #eef1f7;
-    --panel: #ffffff;
-    --panel-2: #f0f3f9;
-    --panel-hover: #e5ebf6;
-    --text: #1a2130;
-    --text-muted: #5b6478;
-    --border: #e4e8f0;
-    --border-soft: #eef1f7;
-    --up: #ef4444;
-    --down: #16a34a;
-    --shadow: 0 1px 2px rgba(20,30,60,.06), 0 8px 24px rgba(20,30,60,.04);
-    --shadow-hover: 0 2px 4px rgba(20,30,60,.08), 0 16px 32px rgba(20,30,60,.06);
+    --bg: #0f1420;
+    --bg-alt: #0b0f18;
+    --panel: #171d2b;
+    --panel-2: #1e2638;
+    --panel-hover: #24304a;
+    --text: #e6ebf5;
+    --text-muted: #8b97ad;
+    --border: #2a3346;
+    --border-soft: #212a3d;
+    --up: #ff5b5b;
+    --down: #16c784;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.12);
+    --shadow-hover: 0 2px 4px rgba(0,0,0,.35), 0 16px 32px rgba(0,0,0,.18);
   }
+}
+html {
+  background: var(--bg);
+  color: var(--text);
+  transition: var(--transition-theme);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }

@@ -54,7 +54,7 @@ CSV 文件格式：`entity,code,year,value_column`，其中 `code` 为 ISO3 代�
 
 ### API 下载（备用）
 
-不设置 `WA_OWID_CSV_DIR` 时，首次运行自动从 OWID Chart API 下载 CSV 并导入 MySQL，之后缓存清理。
+不设置 `WA_OWID_CSV_DIR` 时，首次运行自动从 OWID Chart API 下载 CSV 并导入 MySQL，之后缓存清理。下载使用 30s 超时（`fetch/owid.v` 的 `download_owid_csv`），避免大文件超时失败。
 
 ### 数据流程
 
@@ -93,7 +93,7 @@ CSV 文件格式：`entity,code,year,value_column`，其中 `code` 为 ISO3 代�
 - **SQL 注入防护**：所有查询用 `database.sql_escape()` 转义；搜索 WHERE 中 OR 两侧必须加括号（`database/v` 中已有实现）。
 - **ISO3 覆盖有限**：`models.iso2_to_iso3()` 仅 ~80 个国家有映射；未收录的返回空串，调用方自行处理。
 - **Flag Emoji 算法**：`models.iso2_to_flag_emoji(iso2)` 使用直接 UTF-8 字节构造（`0xF0 0x9F 0x87 byte(0xA6+offset)`），不要用 `rune().str()` 方式（V 编译器会产生错误码点）。
-- **IMF API 经常超时失败**：imf.org 网络不稳定，单次请求约 12s，现在使用 30s 超时 + 重试；日志中常见 `imf: 部分请求失败`，不影响其他数据源。全量抓取（20 国 × 6 数据集）可能耗时 30+ 分钟。
+- **IMF API 经常超时失败**：imf.org 网络不稳定，单次请求约 12s，现在使用 30s 超时 + 重试；日志中常见 `imf: 部分请求失败`，不影响其他数据源。全量抓取（20 国 × 6 数据集）可能耗时 30+ 分钟。**注意**：IMF DataMapper API 响应格式已变更（旧格式 `{"Series":{"Obs":[...]}}` → 新格式 `{"values":{"DATASET":{"ISO2":{"YEAR":value}}}}`），`fetch/imf.v` 的 `fetch_imf_dataset` 已更新解析逻辑。
 - **后台抓取调度**：启动即全量一次（worldbank + imf + market/fx/commodity + owid），之后每 10 分钟刷行情/汇率/商品，每 12 小时全量。串行请求，worldbank 80 国 × 19 指标耗时可达 10-15 分钟。
 - **`.gitignore` 忽略 `*.js` 和 `*.db`**：`static/js/app.js` 及所有 SQLite 数据库不被 git 跟踪，clone 后不存在属正常。
 - **静态文件须显式注册**：新增 CSS/JS 文件需同时在 `App.static_files` map 中注册 URL→路径映射。
@@ -104,6 +104,8 @@ CSV 文件格式：`entity,code,year,value_column`，其中 `code` 为 ISO3 代�
 - **OWID 数据含未来预测**：部分 CSV 包含至 2100 年的预测数据（如人口、生育率），展示时需注意标注"预测"。
 - **OWID 指标代码**：使用 CSV 文件名（不含 `.csv`）作为 `indicators.indicator` 字段值，如 `population`、`life-expectancy`。
 - **OWID 特殊实体**：CSV 中包含 `WLD`（世界）、`OWID_HIC`（高收入）等聚合实体，无对应 ISO2 代码，导入时自动跳过。
+- **主题切换默认深色**：CSS `:root` 定义深色变量，`[data-theme="light"]` 为浅色；JS 读取 `localStorage` 默认深色，右上角 ☀️/🌙 切换并持久化。
+- **CSS 自定义属性完整定义**：`--radius`、`--trans`、`--font` 等所有 `var(--*)` 变量在 `:root` 中集中定义，避免未定义导致样式失效。
 
 ## 架构速览
 
@@ -164,3 +166,11 @@ static/         → css/style.css + js/app.js（编译期嵌入，不依赖磁�
 改代码后：`v fmt -w .` → `v -o world_app .` → 启动 MySQL → `./_tmp_launch.sh` 检查各路由 HTTP 状态码与 `world_app.log` 尾部日志。
 
 参考文档：`README.md`（详细架构）、`AGENT.md`（原始需求）。
+
+## 最近重要修复
+
+### 2026-08-30
+- **IMF API 格式变更修复**：`fetch/imf.v` 的 `fetch_imf_dataset` 更新解析逻辑，适配新版 DataMapper API 响应格式 `{"values":{"DATASET":{"ISO2":{"YEAR":value}}}}`。
+- **OWID 下载超时修复**：`fetch/owid.v` 的 `download_owid_csv` 改用 `http_get_timeout` 30s 超时，避免大 CSV 文件下载失败。
+- **默认深色主题**：CSS `:root` 定义深色变量，JS 默认读取 localStorage 为深色，右上角 ☀️/🌙 切换并持久化。
+- **CSS 变量完整定义**：在 `:root` 集中定义 `--radius`、`--trans`、`--font`、`--transition-theme`、`--ease` 等所有自定义属性，修复样式缺失问题。

@@ -96,60 +96,61 @@ pub fn fetch_imf(dbconn &database.Database, limit int) !int {
 }
 
 // fetch_imf_dataset 拉取某个数据集下某个国家多年的数值（取最近若干年）；
-// 网络错误 / 无数据返回空 map，由调用方计入失败
+// 网络错误 / 无数据返回空 map，由调用方计入失败。
+// 新 IMF DataMapper API 格式: {"values":{"DATASET":{"ISO2":{"YEAR":value}}}}
 fn fetch_imf_dataset(dataset string, iso2 string) map[int]f64 {
 	mut result := map[int]f64{}
 	url := 'https://www.imf.org/external/datamapper/api/v1/${dataset}/${iso2}'
 	// IMF API 响应慢（~12s），需 30s 超时避免所有请求超时失败
 	body := http_get_timeout(url, '', 30_000_000) or { return result }
-	series_start := body.index('"Series"') or { return result }
-	obs_start := body.index_after('"Obs"', series_start) or { return result }
-	mut i := obs_start
+	// 解析新格式: {"values":{"DATASET":{"COUNTRY":{"YEAR":value,...}}}}
+	values_pos := body.index('"values"') or { return result }
+	// 在 values 对象内找到数据集名称
+	ds_key := '"' + dataset + '"'
+	ds_start := body.index_after(ds_key, values_pos) or { return result }
+	// 跳过数据集名称后的引号，找到对象起始大括号
+	ds_brace := body.index_after('"', ds_start) or { return result }
+	// 在数据集内找到国家 ISO2 代码
+	iso2_key := '"' + iso2 + '"'
+	iso2_pos := body.index_after(iso2_key, ds_brace) or { return result }
+	// 跳过国家名称后的引号，找到数据对象起始大括号
+	iso2_brace := body.index_after('"', iso2_pos) or { return result }
+	// 从 iso2_brace + 1 开始解析 "YEAR":value 对
+	mut i := iso2_brace + 1
 	for i < body.len {
-		ts := body.index_after('"@TIME"', i) or { -1 }
-		if ts == -1 {
+		// 跳过空白和分隔符
+		for i < body.len && (body[i] == ` ` || body[i] == `,` || body[i] == `}` || body[i] == `\t` || body[i] == `\n` || body[i] == `\r`) {
+			i++
+		}
+		if i >= body.len || body[i] == `}` {
 			break
 		}
-		// 读取年份
-		tq := body.index_after(':', ts) or { -1 }
-		if tq == -1 {
-			break
+		if body[i] != `"` {
+			i++
+			continue
 		}
-		tq2 := body.index_after('"', tq + 1) or { -1 }
-		if tq2 == -1 {
-			break
+		// 读取年份（引号内）
+		tq := body.index_after('"', i) or { break }
+		year := body[i + 1..tq].int()
+		i = tq + 1
+		// 跳过空白和冒号
+		for i < body.len && body[i] != `:` {
+			i++
 		}
-		te := body.index_after('"', tq2 + 1) or { -1 }
-		if te == -1 {
-			break
-		}
-		year := body[tq2 + 1..te].int()
-		// 找 @OBS_VALUE
-		vs := body.index_after('"@OBS_VALUE"', te) or { -1 }
-		if vs == -1 {
-			break
-		}
-		vq := body.index_after(':', vs) or { -1 }
-		if vq == -1 {
-			break
-		}
-		// 跳到数值开始
-		mut vp := vq + 1
-		for vp < body.len && (body[vp] == ` ` || body[vp] == `,` || body[vp] == `"`) {
+		i++ // 跳过冒号
+		// 读取数值
+		mut vp := i
+		for vp < body.len && body[vp] != `,` && body[vp] != `}` && body[vp] != `"` && body[vp] != ` ` {
 			vp++
 		}
-		mut ve := vp
-		for ve < body.len && body[ve] != `,` && body[ve] != `}` && body[ve] != `"` {
-			ve++
-		}
-		vstr := body[vp..ve].trim(' \t\n\r')
+		vstr := body[i..vp].trim(' \t\n\r')
 		if vstr != '' && vstr != 'null' {
 			v := vstr.f64()
 			if v > 0 {
 				result[year] = v
 			}
 		}
-		i = te + 1
+		i = vp
 	}
 	return result
 }
