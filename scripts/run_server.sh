@@ -12,4 +12,4 @@ export MYSQL_USER="${MYSQL_USER:-world}"
 export MYSQL_PASS="${MYSQL_PASS:-world123}"
 export MYSQL_DB="${MYSQL_DB:-all_in_one}"
 
-./world_app
+./world_data

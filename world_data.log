@@ -1,0 +1,32 @@
+[boot] 初始化 MySQL...
+[boot] 数据库已存在，跳过创建: all_in_one
+[schema] 表已存在，跳过创建: countries
+[schema] 表已存在，跳过创建: indicators
+[schema] 表已存在，跳过创建: market_quotes
+[schema] 表已存在，跳过创建: fetch_logs
+[boot] MySQL 连接成功
+[import] 库中已有数据 (countries=297, quotes=48)，跳过 SQLite 导入
+[background] 开始抓取全部数据源...
+[market] success: 更新 10 个行情标的 (10 条, 1665ms)
+[background] market 完成: 10
+[fx] success: 更新 11 个货币对汇率 (11 条, 1082ms)
+[background] fx 完成: 11
+[commodity] success: 更新 8 个商品品种 (8 条, 428ms)
+[background] commodity 完成: 8
+[boot] 已通过 cmd.exe 打开浏览器: http://localhost:3003
+[boot] 初始化 MySQL...
+[boot] 数据库已存在，跳过创建: all_in_one
+[schema] 表已存在，跳过创建: countries
+[schema] 表已存在，跳过创建: indicators
+[schema] 表已存在，跳过创建: market_quotes
+[schema] 表已存在，跳过创建: fetch_logs
+[boot] MySQL 连接成功
+[import] 库中已有数据 (countries=297, quotes=48)，跳过 SQLite 导入
+[background] 开始抓取全部数据源...
+[boot] 已通过 cmd.exe 打开浏览器: http://localhost:3003
+[market] partial: 更新 93/118 个行情标的 (93 条, 56249ms)
+[background] market 完成: 93
+[fx] success: 更新 11 个货币对汇率 (11 条, 1318ms)
+[background] fx 完成: 11
+[commodity] success: 更新 8 个商品品种 (8 条, 231ms)
+[background] commodity 完成: 8

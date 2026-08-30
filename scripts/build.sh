@@ -4,5 +4,5 @@ set -e
 export PATH="$HOME/.local/bin:$PATH"
 cd "$(dirname "$0")/.."
 v fmt -w .
-v -o world_app .
-echo "build ok -> ./world_app"
+v -o world_data .
+echo "build ok -> ./world_data"

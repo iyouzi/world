@@ -110,7 +110,7 @@ fn is_wsl() bool {
 // maybe_import_sqlite 可选从 SQLite 文件导入初始数据（仅首次运行时，库为空时生效）。
 // 默认不依赖任何外部目录——完全由公开 API 抓取真实数据。
 // 调试时可通过 WA_SQLITE_PATHS 环境变量指定多个 SQLite 文件路径（逗号分隔）；
-// 例如：WA_SQLITE_PATHS="/path/to/data.db,/path/to/market.db" ./world_app
+// 例如：WA_SQLITE_PATHS="/path/to/data.db,/path/to/market.db" ./world_data
 fn (mut app App) maybe_import_sqlite() {
 	cnt := app.db.count_countries('') or { 0 }
 	mq := app.db.count_market_quotes() or { 0 }

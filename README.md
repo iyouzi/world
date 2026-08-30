@@ -28,7 +28,7 @@
 | 鲁棒的网络请求 | `fetch/http_util.v` 统一封装：read/write 超时 10s、4 次（含初始）指数退避重试、429 限速等待、5xx 可重试、4xx 直接失败 |
 | 分类边栏 | 右侧栏含全部 18 个分类入口和关键词搜索框；CSS `order:2` 实现右对齐 |
 | UI/UX 优化 | 深色/浅色双主题、移动端汉堡菜单、Toast 通知、统计卡片渐变、行情 Tabs、国家详情展示 |
-| 日志与可观测 | V `log` 模块写入 `world_app.log`（UTF-8）+ stderr；`fetch_logs` 表记录每个源 success/partial/failed；启动抓取调度不吞错误；所有浮点数精确到 2 位小数 |
+| 日志与可观测 | V `log` 模块写入 `world_data.log`（UTF-8）+ stderr；`fetch_logs` 表记录每个源 success/partial/failed；启动抓取调度不吞错误；所有浮点数精确到 2 位小数 |
 | REST API | `/api/stats`、`/api/refresh`、`/api/imf_top`、`/search` 供前端轮询与集成 |
 
 | Feature | Description |
@@ -40,7 +40,7 @@
 | Robust network requests | `fetch/http_util.v` uniformly wraps: 10s read/write timeout, 4 attempts (incl. initial) with exponential backoff retry, 429 rate-limit wait, 5xx retriable, 4xx immediate failure |
 | Categorized sidebar | The right sidebar contains all 18 category entries and a keyword search box; CSS `order:2` achieves right alignment |
 | UI/UX optimizations | Dark/light dual themes, mobile hamburger menu, Toast notifications, gradient stat cards, quote Tabs, country detail view |
-| Logging & observability | V `log` module writes to `world_app.log` (UTF-8) + stderr; `fetch_logs` table records success/partial/failed per source; startup fetch scheduler never swallows errors; all floats formatted to 2 decimal places |
+| Logging & observability | V `log` module writes to `world_data.log` (UTF-8) + stderr; `fetch_logs` table records success/partial/failed per source; startup fetch scheduler never swallows errors; all floats formatted to 2 decimal places |
 | REST API | `/api/stats`, `/api/refresh`, `/api/imf_top`, `/search` for frontend polling and integration |
 
 ## 2. 技术栈 / Tech Stack
@@ -84,7 +84,7 @@
 ## 3. 目录结构 / Directory Structure
 
 ```
-world_app/
+world_data/
 ├── main.v              # 入口：veb 应用、路由、App 结构体、后台刷新调度
 ├── render.v            # HTML 渲染（页面外壳、边栏、各分类内容片段）
 ├── models/models.v     # 共享数据模型 + 分类目录定义 + 数值格式化
@@ -99,7 +99,7 @@ world_app/
 │   ├── css/style.css   # 页面样式
 │   └── js/app.js       # 搜索、手动刷新、状态轮询、Chart.js 渲染
 └── scripts（仓库根）
-    ├── build.sh        # 构建 world_app
+    ├── build.sh        # 构建 world_data
     ├── run_server.sh   # 启动 + 冒烟测试各路由
     ├── mysql_init.sql  # 创建用户 world/world123 与库 all_in_one
     └── diag.sh         # 连接诊断脚本
@@ -107,7 +107,7 @@ world_app/
 
 > **English:**
 > ```
-> world_app/
+> world_data/
 > ├── main.v              # Entry point: veb app, routes, App struct, background refresh scheduler
 > ├── render.v            # HTML rendering (page shell, sidebar, per-category content fragments)
 > ├── models/models.v     # Shared data models + category definitions + number formatting
@@ -122,7 +122,7 @@ world_app/
 > │   ├── css/style.css   # Page styles
 > │   └── js/app.js       # Search, manual refresh, status polling, Chart.js rendering
 > └── scripts (repo root)
->     ├── build.sh        # Build world_app
+>     ├── build.sh        # Build world_data
 >     ├── run_server.sh   # Launch + smoke test each route
 >     ├── mysql_init.sql  # Create user world/world123 and database all_in_one
 >     └── diag.sh         # Connection diagnostics script
@@ -176,13 +176,13 @@ world_app/
 
 ### 日志 / Logging
 
-- 运行期日志由 `database.log_line(tag, msg)` 统一写入**程序目录下的 `world_app.log`**（UTF-8 编码，V `log` 模块输出），并同步输出 stderr；
+- 运行期日志由 `database.log_line(tag, msg)` 统一写入**程序目录下的 `world_data.log`**（UTF-8 编码，V `log` 模块输出），并同步输出 stderr；
 - 抓取成败同时写入 MySQL `fetch_logs` 表（经 `/api/stats` 暴露最近 5 条）；
 - 全部抓取源在成功/部分/失败时都会记录：`success` / `partial` / `failed` 状态 + 条数 + 耗时；
 - 所有浮点数统一使用 `fmt2()` 精确到 2 位小数（`${v:.2f}` 格式），大数值用 `format_large()` 保留 2 位小数加 K/M/B/T 后缀。
 
 > **English:**
-> - Runtime logs are uniformly written by `database.log_line(tag, msg)` to **`world_app.log` in the program directory** (UTF-8, via V `log` module) and simultaneously output to stderr;
+> - Runtime logs are uniformly written by `database.log_line(tag, msg)` to **`world_data.log` in the program directory** (UTF-8, via V `log` module) and simultaneously output to stderr;
 > - Fetch success/failure is also written to the MySQL `fetch_logs` table (exposed via `/api/stats`, latest 5 entries);
 > - Every fetch source records on success/partial/failure: `success` / `partial` / `failed` status + record count + duration;
 > - All floats use `fmt2()` for exactly 2 decimal places (`${v:.2f}` format); large numbers use `format_large()` with 2 decimals plus K/M/B/T suffix.
@@ -484,7 +484,7 @@ SOURCE scripts/mysql_init.sql;   -- 创建 world/world123 用户与 all_in_one �
 
 ```sh
 # 构建（无全局变量，无需 -enable-globals）
-cd world_app && v -o world_app .
+cd world_data && v -o world_data .
 # 或 ./scripts/build.sh
 
 # 格式化
@@ -494,7 +494,7 @@ v fmt -w .
 v test .
 
 # 运行（需 MySQL 已启动）
-MYSQL_HOST=127.0.0.1 ./world_app
+MYSQL_HOST=127.0.0.1 ./world_data
 # 浏览器访问 http://localhost:3003
 
 # 启动 + 冒烟测试（/, /api/stats, /category, /country, /market, /static）
@@ -504,7 +504,7 @@ MYSQL_HOST=127.0.0.1 ./world_app
 > **English:**
 > ```sh
 > # Build (no globals, no -enable-globals needed)
-> cd world_app && v -o world_app .
+> cd world_data && v -o world_data .
 > # or ./scripts/build.sh
 >
 > # Format
@@ -514,16 +514,16 @@ MYSQL_HOST=127.0.0.1 ./world_app
 > v test .
 >
 > # Run (MySQL must be started)
-> MYSQL_HOST=127.0.0.1 ./world_app
+> MYSQL_HOST=127.0.0.1 ./world_data
 > # Open http://localhost:3003 in a browser
 >
 > # Launch + smoke test (/, /api/stats, /category, /country, /market, /static)
 > ./scripts/run_server.sh
 > ```
 
-修改代码后的验证顺序：`v fmt -w .` → `v -o world_app .` → 启动 MySQL → `scripts/run_server.sh` 检查各路由 HTTP 状态码与 `world_app/world_app.log` 尾部日志。
+修改代码后的验证顺序：`v fmt -w .` → `v -o world_data .` → 启动 MySQL → `scripts/run_server.sh` 检查各路由 HTTP 状态码与 `world_data/world_data.log` 尾部日志。
 
-> **English:** Verification order after code changes: `v fmt -w .` → `v -o world_app .` → start MySQL → `scripts/run_server.sh` to check each route's HTTP status code and the tail of `world_app/world_app.log`.
+> **English:** Verification order after code changes: `v fmt -w .` → `v -o world_data .` → start MySQL → `scripts/run_server.sh` to check each route's HTTP status code and the tail of `world_data/world_data.log`.
 
 ## 10. 已知限制与注意事项 / Known Limitations & Notes
 
@@ -533,7 +533,7 @@ MYSQL_HOST=127.0.0.1 ./world_app
 4. **大宗商品昨收为近似值**：新浪外盘以"昨结算价"近似昨收，涨跌幅按此计算。
 5. **SQL 拼接**：查询使用字符串拼接 + 增强版 `sql_escape()`（转义 `\ ' " \n \r \x00`），搜索 WHERE 条件对 OR 加括号保证优先级；生产化建议改用占位符参数化查询。
 6. **静态文件映射是显式的**：新增 CSS/JS 文件需同时在 `App.static_files` map 中注册 URL→路径映射。
-7. **`.gitignore` 忽略 `*.js`/`*.db`**：`static/js/app.js` 与所有 SQLite 文件不被 git 跟踪，`world_app.log` 同样不入库。注意 `main.v` 在编译期通过 `$embed_file('static/js/app.js')` 把前端 JS 嵌入单二进制，**构建时该文件必须存在**；若 clone 后缺失（被 gitignore），需从仓库的构建脚本或 `scripts/` 重新生成/放置 `app.js`，否则 `v -o world_app .` 会失败。
+7. **`.gitignore` 忽略 `*.js`/`*.db`**：`static/js/app.js` 与所有 SQLite 文件不被 git 跟踪，`world_data.log` 同样不入库。注意 `main.v` 在编译期通过 `$embed_file('static/js/app.js')` 把前端 JS 嵌入单二进制，**构建时该文件必须存在**；若 clone 后缺失（被 gitignore），需从仓库的构建脚本或 `scripts/` 重新生成/放置 `app.js`，否则 `v -o world_data .` 会失败。
 8. **测试**：`v test .` 覆盖四个模块（models 格式化与分类目录、database 转义/配置 + MySQL 集成（无 DB 自动跳过）、fetch 各解析器、render 页面片段）。集成测试需要本地 MySQL 已按 §8 初始化。
 9. **V 编译器 unused 误报**：对 map key 变量 + `$interp` 字符串插值场景，V 0.5.x 可能误报 "unused variable"，不影响二进制正确性。
 
@@ -544,7 +544,7 @@ MYSQL_HOST=127.0.0.1 ./world_app
 > 4. **Commodity previous close is approximate**: Sina overseas futures approximate previous close with "prior settlement price"; change % is computed against it.
 > 5. **SQL concatenation**: queries use string concatenation + an enhanced `sql_escape()` (escaping `\ ' " \n \r \x00`); the search WHERE wraps OR in parentheses to preserve precedence; for production, prefer parameterized placeholder queries.
 > 6. **Static file mapping is explicit**: new CSS/JS files must also be registered in the `App.static_files` map (URL → path).
-> 7. **`.gitignore` ignores `*.js`/`*.db`**: `static/js/app.js` and all SQLite files are untracked by git, and `world_app.log` is also not committed. Note that `main.v` embeds the frontend JS into the single binary at compile time via `$embed_file('static/js/app.js')`; **that file must exist at build time** — if missing after clone (due to gitignore), regenerate/place `app.js` via the build script or `scripts/`, otherwise `v -o world_app .` fails.
+> 7. **`.gitignore` ignores `*.js`/`*.db`**: `static/js/app.js` and all SQLite files are untracked by git, and `world_data.log` is also not committed. Note that `main.v` embeds the frontend JS into the single binary at compile time via `$embed_file('static/js/app.js')`; **that file must exist at build time** — if missing after clone (due to gitignore), regenerate/place `app.js` via the build script or `scripts/`, otherwise `v -o world_data .` fails.
 > 8. **Tests**: `v test .` covers four modules (models formatting & category directory, database escaping/config + MySQL integration (auto-skipped without DB), fetch parsers, render page fragments). Integration tests need local MySQL initialized per §8.
 > 9. **V compiler unused false positive**: for map key variables + `$interp` string interpolation, V 0.5.x may falsely report "unused variable"; this does not affect binary correctness.
 
@@ -571,6 +571,7 @@ MYSQL_HOST=127.0.0.1 ./world_app
 - **OWID 下载超时修复**：`fetch/owid.v` 的 `download_owid_csv` 改用 `http_get_timeout` 30s 超时，避免大 CSV 文件下载失败。
 - **默认深色主题**：CSS `:root` 定义深色变量，JS 默认读取 localStorage 为深色，右上角 ☀️/🌙 切换并持久化。
 - **CSS 变量完整定义**：在 `:root` 集中定义 `--radius`、`--trans`、`--font`、`--transition-theme`、`--ease` 等所有自定义属性，修复样式缺失问题。
+- **首页 G20+ 主要国家表格**：`render.v` 的 `overview_html` 新增 G20 及全球 48 个主要经济体表格，展示人口、国土面积、GDP、PPP、人均GDP、PPP密度等指标。WorldBank 指标新增 `AG.LND.TOTL.K2`（国土面积）、`NY.GDP.MKTP.PP.CD`（PPP GDP）、`NY.GDP.PCAP.PP.CD`（人均PPP）。
 
 > **English:**
 > ### v0.3.1 (2026-08-30)
@@ -578,6 +579,7 @@ MYSQL_HOST=127.0.0.1 ./world_app
 > - **OWID download timeout fix**: Changed `download_owid_csv` in `fetch/owid.v` to use `http_get_timeout` with 30s timeout to avoid large CSV download failures.
 > - **Default dark theme**: CSS `:root` defines dark mode variables, JS defaults to dark mode from localStorage, top-right ☀️/🌙 toggle with persistence.
 > - **Complete CSS custom properties**: All `var(--*)` variables (`--radius`, `--trans`, `--font`, `--transition-theme`, `--ease`, etc.) now defined in `:root` to prevent missing variable style issues.
+> - **Homepage G20+ Major Economies Table**: Added G20 and 48 major global economies table to `overview_html` in `render.v`, showing population, land area, GDP, PPP, GDP per capita, PPP density. WorldBank indicators added: `AG.LND.TOTL.K2` (land area), `NY.GDP.MKTP.PP.CD` (GDP PPP), `NY.GDP.PCAP.PP.CD` (GDP per capita PPP).
 
 > **English:**
 > ### v0.3.0 (2026-08)

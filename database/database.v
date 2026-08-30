@@ -160,9 +160,9 @@ pub fn (mut d Database) close() {
 
 // ============ 日志 ============
 
-// log_file_path 日志文件路径：程序可执行文件所在目录下的 world_app.log
-pub fn log_file_path() string {
-	return os.join_path(os.dir(os.executable()), 'world_app.log')
+// log_file_path 日志文件路径：程序可执行文件所在目录下的 world_data.log
+fn log_file_path() string {
+	return os.join_path(os.dir(os.executable()), 'world_data.log')
 }
 
 // init_log 初始化日志文件（V log 模块，UTF-8 编码）。
@@ -173,7 +173,7 @@ pub fn (mut d Database) init_log() {
 	println('[log] 日志已初始化: ${log_file_path()}')
 }
 
-// log_line 运行期日志：同步输出到 stderr 并写入 world_app.log（UTF-8）。
+// log_line 运行期日志：同步输出到 stderr 并写入 world_data.log（UTF-8）。
 // 所有启动步骤 / 抓取成功失败 / 异常都必须经过这里。
 pub fn log_line(tag string, msg string) {
 	line := '[${tag}] ${msg}'
@@ -486,6 +486,64 @@ pub fn (d &Database) get_country_gdp_top(limit int) ![]models.CountryGdp {
 			name:  v[1]
 			value: v[2].f64()
 			year:  v[3].int()
+		}
+	}
+	return out
+}
+
+// get_home_countries 返回 G20+ 主要国家首页概览数据（人口、面积、GDP、PPP 等）。
+// 如果某个指标缺数据则对应字段为 0；year 取 GDP 最新年份。
+pub fn (d &Database) get_home_countries() ![]models.HomeCountry {
+	m := d.handle()
+	// G20 成员 + 其他影响力较大的国家（约 50 个）
+	countries := [
+		'US', 'CN', 'JP', 'DE', 'IN', 'GB', 'FR', 'BR', 'IT', 'CA',
+		'KR', 'RU', 'AU', 'MX', 'ES', 'ID', 'TR', 'SA', 'NL', 'CH',
+		'PL', 'SE', 'BE', 'NO', 'AT', 'TH', 'IE', 'IL', 'ZA', 'DK',
+		'AR', 'SG', 'MY', 'PH', 'EG', 'NG', 'CL', 'CO', 'PK', 'BD',
+		'VN', 'PE', 'CZ', 'RO', 'NZ', 'FI', 'PT', 'GR', 'PE', 'NG',
+	]
+	mut q_iso := ''
+	for i, c in countries {
+		if i > 0 { q_iso += ',' }
+		q_iso += "'" + c + "'"
+	}
+	// 构建子查询：每个国家取各指标最新年份
+	mut sql_str := "SELECT c.iso2, c.name, " +
+		"(SELECT i.value FROM indicators i WHERE i.country_iso=c.iso2 AND i.source='worldbank' AND i.indicator='SP.POP.TOTL' ORDER BY i.year DESC LIMIT 1) AS pop, " +
+		"(SELECT i.value FROM indicators i WHERE i.country_iso=c.iso2 AND i.source='worldbank' AND i.indicator='AG.LND.TOTL.K2' ORDER BY i.year DESC LIMIT 1) AS area, " +
+		"(SELECT i.value FROM indicators i WHERE i.country_iso=c.iso2 AND i.source='worldbank' AND i.indicator='NY.GDP.MKTP.CD' ORDER BY i.year DESC LIMIT 1) AS gdp, " +
+		"(SELECT i.value FROM indicators i WHERE i.country_iso=c.iso2 AND i.source='worldbank' AND i.indicator='NY.GDP.MKTP.PP.CD' ORDER BY i.year DESC LIMIT 1) AS gdp_ppp, " +
+		"(SELECT i.value FROM indicators i WHERE i.country_iso=c.iso2 AND i.source='worldbank' AND i.indicator='NY.GDP.PCAP.CD' ORDER BY i.year DESC LIMIT 1) AS gdppc, " +
+		"(SELECT i.value FROM indicators i WHERE i.country_iso=c.iso2 AND i.source='worldbank' AND i.indicator='NY.GDP.PCAP.PP.CD' ORDER BY i.year DESC LIMIT 1) AS gdppc_ppp, " +
+		"(SELECT i.year FROM indicators i WHERE i.country_iso=c.iso2 AND i.source='worldbank' AND i.indicator='NY.GDP.MKTP.CD' ORDER BY i.year DESC LIMIT 1) AS yr " +
+		"FROM countries c WHERE c.iso2 IN (" + q_iso + ") ORDER BY gdp DESC"
+	rows := m.exec(sql_str) or { return []models.HomeCountry{} }
+	mut out := []models.HomeCountry{}
+	for r in rows {
+		v := r.vals
+		pop := to_f(v[2])
+		area := to_f(v[3])
+		gdp := to_f(v[4])
+		gdp_ppp := to_f(v[5])
+		gdppc := to_f(v[6])
+		gdppc_ppp := to_f(v[7])
+		mut ppp_per_sqkm := 0.0
+		if area > 0 && gdp_ppp > 0 {
+			ppp_per_sqkm = gdp_ppp / area
+		}
+		out << models.HomeCountry{
+			iso2:           v[0]
+			name:           v[1]
+			population:     pop
+			land_area:      area
+			gdp:            gdp
+			gdp_ppp:        gdp_ppp
+			gdp_per_capita: gdppc
+			gdp_ppc_ppp:    gdppc_ppp
+			ppp_per_sqkm:   ppp_per_sqkm
+			note:           ''
+			year:           to_i(v[8])
 		}
 	}
 	return out

@@ -108,6 +108,21 @@ fn wb_indicators() []WBIndicator {
 			label: 'CO2 emissions'
 			unit:  'kt'
 		},
+		WBIndicator{
+			code:  'AG.LND.TOTL.K2'
+			label: 'Land area'
+			unit:  'sq km'
+		},
+		WBIndicator{
+			code:  'NY.GDP.MKTP.PP.CD'
+			label: 'GDP PPP'
+			unit:  'int-$'
+		},
+		WBIndicator{
+			code:  'NY.GDP.PCAP.PP.CD'
+			label: 'GDP per capita PPP'
+			unit:  'int-$'
+		},
 	]
 }
 

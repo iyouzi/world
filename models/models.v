@@ -156,6 +156,22 @@ pub:
 	year  int
 }
 
+// HomeCountry 首页国家概览表数据
+pub struct HomeCountry {
+pub:
+	iso2           string
+	name           string
+	population     f64
+	land_area      f64
+	gdp            f64
+	gdp_ppp        f64
+	gdp_per_capita f64
+	gdp_ppc_ppp    f64
+	ppp_per_sqkm   f64
+	note           string
+	year           int
+}
+
 pub struct SidebarItem {
 pub:
 	id     string

@@ -1,9 +1,9 @@
 ---
 name: v-fullstack-dev
-description: V 语言全栈 Web 应用开发技能，专为 world_app 类项目设计。Use when working on V language web projects with veb framework, MySQL/SQLite databases, HTTP fetch with timeout/retry, GBK encoding, SQL injection prevention, or when the user mentions "V 编译错误"、"veb 路由"、"GBK 乱码"、"行情抓取失败"、"SQL 注入"、"AGENTS.md"、"世界数据平台"、"web app"。
+description: V 语言全栈 Web 应用开发技能，专为 world_data 类项目设计。Use when working on V language web projects with veb framework, MySQL/SQLite databases, HTTP fetch with timeout/retry, GBK encoding, SQL injection prevention, or when the user mentions "V 编译错误"、"veb 路由"、"GBK 乱码"、"行情抓取失败"、"SQL 注入"、"AGENTS.md"、"世界数据平台"、"web app"。
 ---
 
-# V 全栈 Web 开发 — world_app 项目规范
+# V 全栈 Web 开发 — world_data 项目规范
 
 ## 重要：编译期陷阱
 
@@ -50,7 +50,7 @@ pub mut:
 ## 项目结构速查
 
 ```
-world_app/
+world_data/
 ├── main.v            # 入口 + veb 路由 + 后台刷新调度
 ├── render.v          # HTML 渲染（page_shell / sidebar / overview / market）
 ├── models/models.v   # 数据模型 + all_categories() + iso2_to_iso3
@@ -129,7 +129,7 @@ fn format_datetime(t time.Time) string {
 ### MySQL 环境变量覆盖
 
 ```sh
-MYSQL_HOST=127.0.0.1 MYSQL_PORT=3306 MYSQL_USER=world MYSQL_PASS=world123 MYSQL_DB=all_in_one ./world_app
+MYSQL_HOST=127.0.0.1 MYSQL_PORT=3306 MYSQL_USER=world MYSQL_PASS=world123 MYSQL_DB=all_in_one ./world_data
 ```
 
 连接超时无法在 `mysql.Config` 中设置（V 0.5.x 不支持），依赖 `fetch/http_util.v` 的 HTTP 层超时。
@@ -173,11 +173,11 @@ fn run_fetch(label string, f fn () !int) (bool, int) {
 ## 构建与测试
 
 ```sh
-cd world_app
+cd world_data
 v fmt -w .           # 格式化（.v 用 tab 缩进）
-v -o world_app .     # 构建
+v -o world_data .     # 构建
 v test .             # 全部测试（database 集成测试需 MySQL，无 DB 时自动跳过）
-pkill -x world_app   # 杀进程（精确匹配，不用 -f）
+pkill -x world_data   # 杀进程（精确匹配，不用 -f）
 ```
 
 `render_test.v` 覆盖 XSS 防护、边栏位置、meta 完整性；`models_test.v` / `database_test.v` / `fetch_test.v` 各有专注点，改相关模块后优先跑对应测试文件。

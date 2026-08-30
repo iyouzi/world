@@ -1,4 +1,4 @@
-# AGENTS.md — world_app
+# AGENTS.md — world_data
 
 V 语言单体 veb 应用：整合 WorldBank / IMF / 全球市场行情 / OWID 四大数据源，展示世界经济与社会数据。编译为单二进制，运行时依赖 MySQL 8。
 
@@ -6,24 +6,24 @@ V 语言单体 veb 应用：整合 WorldBank / IMF / 全球市场行情 / OWID �
 
 ```sh
 # 进入项目目录（.v 文件直接在根目录，非子目录）
-cd /mnt/h/All_in_One/world_app
+cd /mnt/h/All_in_One/world_data
 
 # 格式化（.v 文件用 tab 缩进，见 .editorconfig）
 v fmt -w .
 
 # 构建
-v -o world_app .
+v -o world_data .
 
 # 运行（需 MySQL 已启动，端口 3003）
-MYSQL_HOST=127.0.0.1 ./world_app
+MYSQL_HOST=127.0.0.1 ./world_data
 # 或设 WA_IMPORT_SQLITE=1 首次从 SQLite 导入初始数据
 
 # 测试（database 集成测试需 MySQL，无 DB 时自动跳过）
 v test .
 
 # 重启（杀进程用精确匹配，避免误杀 bash 自身）
-pkill -x world_app   # 正确
-pkill -f world_app   # 错误：会杀掉当前会话
+pkill -x world_data   # 正确
+pkill -f world_data   # 错误：会杀掉当前会话
 
 # 临时快速启动 + 冒烟（含 HTTP 测试）
 ./_tmp_launch.sh
@@ -39,7 +39,7 @@ OWID 数据来自 [Our World in Data](https://ourworldindata.org)，包含 16 �
 
 ```sh
 # 使用 ../owid-data/data 中的 CSV 文件导入
-WA_OWID_CSV_DIR=/mnt/h/All_in_One/owid-data/data MYSQL_HOST=127.0.0.1 ./world_app
+WA_OWID_CSV_DIR=/mnt/h/All_in_One/owid-data/data MYSQL_HOST=127.0.0.1 ./world_data
 ```
 
 CSV 文件格式：`entity,code,year,value_column`，其中 `code` 为 ISO3 代码，自动转换为 ISO2 存入 MySQL。
@@ -98,7 +98,7 @@ CSV 文件格式：`entity,code,year,value_column`，其中 `code` 为 ISO3 代�
 - **`.gitignore` 忽略 `*.js` 和 `*.db`**：`static/js/app.js` 及所有 SQLite 数据库不被 git 跟踪，clone 后不存在属正常。
 - **静态文件须显式注册**：新增 CSS/JS 文件需同时在 `App.static_files` map 中注册 URL→路径映射。
 - **SQLite 初始导入**：通过 `WA_SQLITE_PATHS=/path/to/a.db,/path/to/b.db` 环境变量指定多个路径（逗号分隔），仅在库为空时生效；不设则完全依赖公开 API。
-- **日志**：使用 V 内置 `log` 模块（`database/init_log()` 在 main 启动时调用），日志文件 `world_app.log` 为 UTF-8 编码；若终端显示乱码请用 UTF-8 编辑器打开。
+- **日志**：使用 V 内置 `log` 模块（`database/init_log()` 在 main 启动时调用），日志文件 `world_data.log` 为 UTF-8 编码；若终端显示乱码请用 UTF-8 编辑器打开。
 - **浮点数格式化**：所有浮点数值统一使用 `fmt2()` 精确到 2 位小数（V `${v:.2f}` 语法，Python `.2f` 风格）；大数值用 `models.format_large()` 保留 2 位小数加 K/M/B/T 后缀。
 - **OWID 数据格式**：CSV 文件第一行为表头 `entity,code,year,value_column`，其中 `code` 为 ISO3 代码，需转换为 ISO2 才能存入 `indicators.country_iso`。转换逻辑参考 `models.iso3_to_iso2()`。空 code 或聚合实体（WLD 等）自动跳过。
 - **OWID 数据含未来预测**：部分 CSV 包含至 2100 年的预测数据（如人口、生育率），展示时需注意标注"预测"。
@@ -112,8 +112,8 @@ CSV 文件格式：`entity,code,year,value_column`，其中 `code` 为 ISO3 代�
 ```
 main.v          → veb 路由入口（端口 3003），持 App 结构体 + DB 连接
 render.v        → HTML 渲染（page_shell / sidebar / overview / wb / imf / market / owid）
-models/models.v → 共享数据模型 + all_categories() + iso2_to_iso3 + iso3_to_iso2 + owid_indicators
-database/       → MySQL 连接 / 建表 / SQLite→MySQL 导入 / OWID CSV 导入 / 查询接口
+models/models.v → 共享数据模型 + all_categories() + iso2_to_iso3 + iso3_to_iso2 + owid_indicators + HomeCountry
+database/       → MySQL 连接 / 建表 / SQLite→MySQL 导入 / OWID CSV 导入 / 查询接口 + get_home_countries()
 fetch/          → worldbank.v / imf.v / market.v / owid.v（含 http_util.v 超时重试）
 static/         → css/style.css + js/app.js（编译期嵌入，不依赖磁盘）
 ```
@@ -122,7 +122,7 @@ static/         → css/style.css + js/app.js（编译期嵌入，不依赖磁�
 
 | 路径 | 说明 |
 |------|------|
-| `/` | 首页概览（统计卡片 + GDP Top20 图表） |
+| `/` | 首页概览（统计卡片 + G20+主要国家表格 + GDP Top20 图表） |
 | `/category/:id` | 分类页（18 个分类，见 `models.all_categories()`） |
 | `/country/:iso2` | 国家详情（WorldBank + IMF + OWID 全部指标） |
 | `/market/:market` | 行情页（cn/hk/us/index/fx/commodity） |
@@ -163,7 +163,7 @@ static/         → css/style.css + js/app.js（编译期嵌入，不依赖磁�
 
 ## 验证流程
 
-改代码后：`v fmt -w .` → `v -o world_app .` → 启动 MySQL → `./_tmp_launch.sh` 检查各路由 HTTP 状态码与 `world_app.log` 尾部日志。
+改代码后：`v fmt -w .` → `v -o world_data .` → 启动 MySQL → `./_tmp_launch.sh` 检查各路由 HTTP 状态码与 `world_data.log` 尾部日志。
 
 参考文档：`README.md`（详细架构）、`AGENT.md`（原始需求）。
 
@@ -174,3 +174,4 @@ static/         → css/style.css + js/app.js（编译期嵌入，不依赖磁�
 - **OWID 下载超时修复**：`fetch/owid.v` 的 `download_owid_csv` 改用 `http_get_timeout` 30s 超时，避免大 CSV 文件下载失败。
 - **默认深色主题**：CSS `:root` 定义深色变量，JS 默认读取 localStorage 为深色，右上角 ☀️/🌙 切换并持久化。
 - **CSS 变量完整定义**：在 `:root` 集中定义 `--radius`、`--trans`、`--font`、`--transition-theme`、`--ease` 等所有自定义属性，修复样式缺失问题。
+- **首页 G20+ 主要国家表格**：`render.v` 的 `overview_html` 新增 G20 及全球 48 个主要经济体表格，展示人口、国土面积、GDP、PPP、人均GDP、PPP密度等指标。数据来源于 `database/get_home_countries()` 查询，WorldBank 指标新增 `AG.LND.TOTL.K2`（国土面积）、`NY.GDP.MKTP.PP.CD`（PPP GDP）、`NY.GDP.PCAP.PP.CD`（人均PPP）。

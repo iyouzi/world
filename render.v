@@ -311,6 +311,49 @@ fn overview_html(ws models.WorldStats, app &App, lang locale.Lang) string {
 		'<div class="card"><div class="cv">${fmt2(ws.avg_life)}</div><div class="cl">' +
 		h(locale.t(lang, 'card_avg_life')) + '</div></div>')
 	sb.write_string('</div>')
+
+	// G20+ 主要国家表格
+	home_countries := app.db.get_home_countries() or { []models.HomeCountry{} }
+	if home_countries.len > 0 {
+		sb.write_string('<div class="panel">')
+		sb.write_string('<div class="panel-header"><h2 style="margin:0">' +
+			h(locale.t(lang, 'home_g20_table')) + '</h2><span class="panel-badge">' +
+			h(locale.tf(lang, 'wld_items', { 'n': home_countries.len.str() })) + '</span></div>')
+		sb.write_string('<div class="table-wrap" style="overflow-x:auto">')
+		sb.write_string('<table class="data-table">')
+		sb.write_string('<thead><tr><th>' + locale.t(lang, 'rank') + '</th><th>' +
+			locale.t(lang, 'country') + '</th>' +
+			'<th class="num-cell">' + locale.t(lang, 'home_population') + '</th>' +
+			'<th class="num-cell">' + locale.t(lang, 'home_area') + '</th>' +
+			'<th class="num-cell">' + locale.t(lang, 'home_gdp') + '</th>' +
+			'<th class="num-cell">' + locale.t(lang, 'home_gdp_ppp') + '</th>' +
+			'<th class="num-cell">' + locale.t(lang, 'home_gdppc') + '</th>' +
+			'<th class="num-cell">' + locale.t(lang, 'home_gdppc_ppp') + '</th>' +
+			'<th class="num-cell">' + locale.t(lang, 'home_ppp_per_sqkm') + '</th>' +
+			'<th>' + locale.t(lang, 'home_note') + '</th>' +
+			'</tr></thead>')
+		sb.write_string('<tbody>')
+		for i, c in home_countries {
+			rank := i + 1
+			note := if c.note != '' { h(c.note) } else { '-' }
+			sb.write_string('<tr>' +
+				'<td style="font-weight:600;color:var(--text-muted)">' + rank.str() + '</td>' +
+				'<td>' + h(c.name) + ' <a href="/country/' + a(c.iso2) +
+				'" style="font-size:11px;color:var(--text-muted);font-weight:400">' + h(c.iso2) + '</a></td>' +
+				'<td class="num-cell">' + models.format_large(c.population) + '</td>' +
+				'<td class="num-cell">' + models.format_large(c.land_area) + '</td>' +
+				'<td class="num-cell">' + models.format_large(c.gdp) + '</td>' +
+				'<td class="num-cell">' + models.format_large(c.gdp_ppp) + '</td>' +
+				'<td class="num-cell">' + models.format_large(c.gdp_per_capita) + '</td>' +
+				'<td class="num-cell">' + models.format_large(c.gdp_ppc_ppp) + '</td>' +
+				'<td class="num-cell">' + models.format_large(c.ppp_per_sqkm) + '</td>' +
+				'<td style="font-size:12px;color:var(--text-muted)">' + note + '</td>' +
+				'</tr>')
+		}
+		sb.write_string('</tbody></table>')
+		sb.write_string('</div></div>')
+	}
+
 	sb.write_string('<div class="panel">')
 	sb.write_string('<div class="panel-header"><h2 style="margin:0">' +
 		h(locale.t(lang, 'gdp_top20')) + '</h2><span class="panel-badge"></span></div>')

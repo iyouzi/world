@@ -2,18 +2,18 @@
 # 临时启动脚本：在 WSL 中执行，避免 Windows PowerShell 变量解析
 set +e
 cd "$(dirname "$0")"
-LOG=world_app.log
+LOG=world_data.log
 
 # 杀掉旧进程
-pkill -x world_app 2>/dev/null
+pkill -x world_data 2>/dev/null
 sleep 1
 
 # 重新编译确保二进制最新
 echo "=== build ==="
-v -o world_app . 2>&1 | tail -5
+v -o world_data . 2>&1 | tail -5
 
 # 启动
-MYSQL_HOST=127.0.0.1 nohup ./world_app > /tmp/wa_boot.log 2>&1 &
+MYSQL_HOST=127.0.0.1 nohup ./world_data > /tmp/wa_boot.log 2>&1 &
 SRV=$!
 echo "SRV_PID=$SRV"
 sleep 12
@@ -21,7 +21,7 @@ sleep 12
 echo "=== /tmp/wa_boot.log tail ==="
 tail -30 /tmp/wa_boot.log 2>/dev/null
 echo ""
-echo "=== world_app.log tail ==="
+echo "=== world_data.log tail ==="
 tail -30 "$LOG" 2>/dev/null
 echo ""
 echo "=== HTTP smoke (curl) ==="

@@ -14,16 +14,6 @@ fn default_symbols() []models.MarketSymbol {
 	return [
 		// A股
 		models.MarketSymbol{
-			symbol: 'sh000001'
-			name:   '上证指数'
-			market: 'index'
-		},
-		models.MarketSymbol{
-			symbol: 'sz399001'
-			name:   '深证成指'
-			market: 'index'
-		},
-		models.MarketSymbol{
 			symbol: 'sh600519'
 			name:   '贵州茅台'
 			market: 'cn'
@@ -38,6 +28,76 @@ fn default_symbols() []models.MarketSymbol {
 			name:   '中国平安'
 			market: 'cn'
 		},
+		models.MarketSymbol{
+			symbol: 'sh600036'
+			name:   '招商银行'
+			market: 'cn'
+		},
+		models.MarketSymbol{
+			symbol: 'sz000858'
+			name:   '五粮液'
+			market: 'cn'
+		},
+		models.MarketSymbol{
+			symbol: 'sh601899'
+			name:   '紫金矿业'
+			market: 'cn'
+		},
+		models.MarketSymbol{
+			symbol: 'sz002594'
+			name:   '比亚迪'
+			market: 'cn'
+		},
+		models.MarketSymbol{
+			symbol: 'sh600900'
+			name:   '长江电力'
+			market: 'cn'
+		},
+		models.MarketSymbol{
+			symbol: 'sz000333'
+			name:   '美的集团'
+			market: 'cn'
+		},
+		models.MarketSymbol{
+			symbol: 'sh601012'
+			name:   '隆基绿能'
+			market: 'cn'
+		},
+		models.MarketSymbol{
+			symbol: 'sz002475'
+			name:   '立讯精密'
+			market: 'cn'
+		},
+		models.MarketSymbol{
+			symbol: 'sh600276'
+			name:   '恒瑞医药'
+			market: 'cn'
+		},
+		models.MarketSymbol{
+			symbol: 'sz000568'
+			name:   '泸州老窖'
+			market: 'cn'
+		},
+		models.MarketSymbol{
+			symbol: 'sh601166'
+			name:   '兴业银行'
+			market: 'cn'
+		},
+		models.MarketSymbol{
+			symbol: 'sh600030'
+			name:   '中信证券'
+			market: 'cn'
+		},
+		models.MarketSymbol{
+			symbol: 'sz002230'
+			name:   '科大讯飞'
+			market: 'cn'
+		},
+		models.MarketSymbol{
+			symbol: 'sh688981'
+			name:   '中芯国际'
+			market: 'cn'
+		},
 		// 港股
 		models.MarketSymbol{
 			symbol: 'hk00700'
@@ -47,6 +107,141 @@ fn default_symbols() []models.MarketSymbol {
 		models.MarketSymbol{
 			symbol: 'hk09988'
 			name:   '阿里巴巴'
+			market: 'hk'
+		},
+		models.MarketSymbol{
+			symbol: 'hk09618'
+			name:   '京东集团'
+			market: 'hk'
+		},
+		models.MarketSymbol{
+			symbol: 'hk03690'
+			name:   '美团'
+			market: 'hk'
+		},
+		models.MarketSymbol{
+			symbol: 'hk09888'
+			name:   '百度集团'
+			market: 'hk'
+		},
+		models.MarketSymbol{
+			symbol: 'hk01810'
+			name:   '小米集团'
+			market: 'hk'
+		},
+		models.MarketSymbol{
+			symbol: 'hk09999'
+			name:   '网易'
+			market: 'hk'
+		},
+		models.MarketSymbol{
+			symbol: 'hk00941'
+			name:   '中国移动'
+			market: 'hk'
+		},
+		models.MarketSymbol{
+			symbol: 'hk02318'
+			name:   '中国平安'
+			market: 'hk'
+		},
+		models.MarketSymbol{
+			symbol: 'hk00388'
+			name:   '香港交易所'
+			market: 'hk'
+		},
+		models.MarketSymbol{
+			symbol: 'hk01211'
+			name:   '比亚迪股份'
+			market: 'hk'
+		},
+		models.MarketSymbol{
+			symbol: 'hk09868'
+			name:   '小鹏汽车'
+			market: 'hk'
+		},
+		models.MarketSymbol{
+			symbol: 'hk02015'
+			name:   '理想汽车'
+			market: 'hk'
+		},
+		models.MarketSymbol{
+			symbol: 'hk09866'
+			name:   '蔚来'
+			market: 'hk'
+		},
+		models.MarketSymbol{
+			symbol: 'hk00005'
+			name:   '汇丰控股'
+			market: 'hk'
+		},
+		models.MarketSymbol{
+			symbol: 'hk00883'
+			name:   '中国海洋石油'
+			market: 'hk'
+		},
+		models.MarketSymbol{
+			symbol: 'hk02628'
+			name:   '中国人寿'
+			market: 'hk'
+		},
+		models.MarketSymbol{
+			symbol: 'hk01398'
+			name:   '工商银行'
+			market: 'hk'
+		},
+		models.MarketSymbol{
+			symbol: 'hk00939'
+			name:   '建设银行'
+			market: 'hk'
+		},
+		models.MarketSymbol{
+			symbol: 'hk03988'
+			name:   '中国银行'
+			market: 'hk'
+		},
+		models.MarketSymbol{
+			symbol: 'hk02382'
+			name:   '舜宇光学'
+			market: 'hk'
+		},
+		models.MarketSymbol{
+			symbol: 'hk00241'
+			name:   '阿里健康'
+			market: 'hk'
+		},
+		models.MarketSymbol{
+			symbol: 'hk06060'
+			name:   '众安在线'
+			market: 'hk'
+		},
+		models.MarketSymbol{
+			symbol: 'hk01024'
+			name:   '快手'
+			market: 'hk'
+		},
+		models.MarketSymbol{
+			symbol: 'hk09626'
+			name:   '哔哩哔哩'
+			market: 'hk'
+		},
+		models.MarketSymbol{
+			symbol: 'hk02518'
+			name:   '汽车之家'
+			market: 'hk'
+		},
+		models.MarketSymbol{
+			symbol: 'hk00772'
+			name:   '阅文集团'
+			market: 'hk'
+		},
+		models.MarketSymbol{
+			symbol: 'hk09961'
+			name:   '携程集团'
+			market: 'hk'
+		},
+		models.MarketSymbol{
+			symbol: 'hk02020'
+			name:   '安踏体育'
 			market: 'hk'
 		},
 		// 美股
@@ -64,6 +259,352 @@ fn default_symbols() []models.MarketSymbol {
 			symbol: 'usNVDA'
 			name:   'NVIDIA'
 			market: 'us'
+		},
+		models.MarketSymbol{
+			symbol: 'usGOOGL'
+			name:   'Alphabet'
+			market: 'us'
+		},
+		models.MarketSymbol{
+			symbol: 'usAMZN'
+			name:   'Amazon'
+			market: 'us'
+		},
+		models.MarketSymbol{
+			symbol: 'usMETA'
+			name:   'Meta'
+			market: 'us'
+		},
+		models.MarketSymbol{
+			symbol: 'usTSLA'
+			name:   'Tesla'
+			market: 'us'
+		},
+		models.MarketSymbol{
+			symbol: 'usBRK.B'
+			name:   'Berkshire Hathaway'
+			market: 'us'
+		},
+		models.MarketSymbol{
+			symbol: 'usLLY'
+			name:   'Eli Lilly'
+			market: 'us'
+		},
+		models.MarketSymbol{
+			symbol: 'usAVGO'
+			name:   'Broadcom'
+			market: 'us'
+		},
+		models.MarketSymbol{
+			symbol: 'usTSM'
+			name:   'TSMC'
+			market: 'us'
+		},
+		models.MarketSymbol{
+			symbol: 'usWMT'
+			name:   'Walmart'
+			market: 'us'
+		},
+		models.MarketSymbol{
+			symbol: 'usJPM'
+			name:   'JPMorgan Chase'
+			market: 'us'
+		},
+		models.MarketSymbol{
+			symbol: 'usV'
+			name:   'Visa'
+			market: 'us'
+		},
+		models.MarketSymbol{
+			symbol: 'usUNH'
+			name:   'UnitedHealth'
+			market: 'us'
+		},
+		models.MarketSymbol{
+			symbol: 'usMA'
+			name:   'Mastercard'
+			market: 'us'
+		},
+		models.MarketSymbol{
+			symbol: 'usXOM'
+			name:   'Exxon Mobil'
+			market: 'us'
+		},
+		models.MarketSymbol{
+			symbol: 'usCOST'
+			name:   'Costco'
+			market: 'us'
+		},
+		models.MarketSymbol{
+			symbol: 'usHD'
+			name:   'Home Depot'
+			market: 'us'
+		},
+		models.MarketSymbol{
+			symbol: 'usPG'
+			name:   'Procter & Gamble'
+			market: 'us'
+		},
+		models.MarketSymbol{
+			symbol: 'usABBV'
+			name:   'AbbVie'
+			market: 'us'
+		},
+		models.MarketSymbol{
+			symbol: 'usCRM'
+			name:   'Salesforce'
+			market: 'us'
+		},
+		models.MarketSymbol{
+			symbol: 'usNFLX'
+			name:   'Netflix'
+			market: 'us'
+		},
+		models.MarketSymbol{
+			symbol: 'usMRK'
+			name:   'Merck'
+			market: 'us'
+		},
+		models.MarketSymbol{
+			symbol: 'usBAC'
+			name:   'Bank of America'
+			market: 'us'
+		},
+		models.MarketSymbol{
+			symbol: 'usAMD'
+			name:   'AMD'
+			market: 'us'
+		},
+		models.MarketSymbol{
+			symbol: 'usORCL'
+			name:   'Oracle'
+			market: 'us'
+		},
+		models.MarketSymbol{
+			symbol: 'usKO'
+			name:   'Coca-Cola'
+			market: 'us'
+		},
+		models.MarketSymbol{
+			symbol: 'usPEP'
+			name:   'PepsiCo'
+			market: 'us'
+		},
+		models.MarketSymbol{
+			symbol: 'usCVX'
+			name:   'Chevron'
+			market: 'us'
+		},
+		models.MarketSymbol{
+			symbol: 'usTMO'
+			name:   'Thermo Fisher'
+			market: 'us'
+		},
+		models.MarketSymbol{
+			symbol: 'usCSCO'
+			name:   'Cisco'
+			market: 'us'
+		},
+		models.MarketSymbol{
+			symbol: 'usACN'
+			name:   'Accenture'
+			market: 'us'
+		},
+		models.MarketSymbol{
+			symbol: 'usDHR'
+			name:   'Danaher'
+			market: 'us'
+		},
+		models.MarketSymbol{
+			symbol: 'usNEE'
+			name:   'NextEra Energy'
+			market: 'us'
+		},
+		models.MarketSymbol{
+			symbol: 'usLIN'
+			name:   'Linde'
+			market: 'us'
+		},
+		models.MarketSymbol{
+			symbol: 'usTXN'
+			name:   'Texas Instruments'
+			market: 'us'
+		},
+		models.MarketSymbol{
+			symbol: 'usQCOM'
+			name:   'Qualcomm'
+			market: 'us'
+		},
+		models.MarketSymbol{
+			symbol: 'usINTC'
+			name:   'Intel'
+			market: 'us'
+		},
+		// 全球指数
+		models.MarketSymbol{
+			symbol: 'sh000001'
+			name:   '上证指数'
+			market: 'index'
+		},
+		models.MarketSymbol{
+			symbol: 'sz399001'
+			name:   '深证成指'
+			market: 'index'
+		},
+		models.MarketSymbol{
+			symbol: 'sz399006'
+			name:   '创业板指'
+			market: 'index'
+		},
+		models.MarketSymbol{
+			symbol: 'sh000688'
+			name:   '科创50'
+			market: 'index'
+		},
+		models.MarketSymbol{
+			symbol: 'usDJI'
+			name:   '道琼斯'
+			market: 'index'
+		},
+		models.MarketSymbol{
+			symbol: 'usIXIC'
+			name:   '纳斯达克'
+			market: 'index'
+		},
+		models.MarketSymbol{
+			symbol: 'usSPX'
+			name:   '标普500'
+			market: 'index'
+		},
+		models.MarketSymbol{
+			symbol: 'hkHSI'
+			name:   '恒生指数'
+			market: 'index'
+		},
+		models.MarketSymbol{
+			symbol: 'hkHSTECH'
+			name:   '恒生科技'
+			market: 'index'
+		},
+		models.MarketSymbol{
+			symbol: 'jpNKY'
+			name:   '日经225'
+			market: 'index'
+		},
+		models.MarketSymbol{
+			symbol: 'gbFTSE'
+			name:   '富时100'
+			market: 'index'
+		},
+		models.MarketSymbol{
+			symbol: 'deDAX'
+			name:   '德国DAX'
+			market: 'index'
+		},
+		models.MarketSymbol{
+			symbol: 'frCAC'
+			name:   '法国CAC40'
+			market: 'index'
+		},
+		models.MarketSymbol{
+			symbol: 'euSTOXX50'
+			name:   '欧洲Stoxx50'
+			market: 'index'
+		},
+		models.MarketSymbol{
+			symbol: 'krKOSPI'
+			name:   '韩国KOSPI'
+			market: 'index'
+		},
+		models.MarketSymbol{
+			symbol: 'twTAIEX'
+			name:   '台湾加权'
+			market: 'index'
+		},
+		models.MarketSymbol{
+			symbol: 'sgSTI'
+			name:   '新加坡海峡时报'
+			market: 'index'
+		},
+		models.MarketSymbol{
+			symbol: 'auAS51'
+			name:   '澳大利亚ASX200'
+			market: 'index'
+		},
+		models.MarketSymbol{
+			symbol: 'caGSPTSE'
+			name:   '加拿大S&P/TSX'
+			market: 'index'
+		},
+		models.MarketSymbol{
+			symbol: 'inSENSEX'
+			name:   '印度Sensex'
+			market: 'index'
+		},
+		models.MarketSymbol{
+			symbol: 'brBVSP'
+			name:   '巴西BOVESPA'
+			market: 'index'
+		},
+		models.MarketSymbol{
+			symbol: 'mxMXX'
+			name:   '墨西哥IPC'
+			market: 'index'
+		},
+		models.MarketSymbol{
+			symbol: 'zaJ203'
+			name:   '南非JSE Top40'
+			market: 'index'
+		},
+		models.MarketSymbol{
+			symbol: 'ruIMOEX'
+			name:   '俄罗斯MOEX'
+			market: 'index'
+		},
+		models.MarketSymbol{
+			symbol: 'saTASI'
+			name:   '沙特Tadawul'
+			market: 'index'
+		},
+		models.MarketSymbol{
+			symbol: 'egEGX30'
+			name:   '埃及EGX30'
+			market: 'index'
+		},
+		models.MarketSymbol{
+			symbol: 'trXU100'
+			name:   '土耳其XU100'
+			market: 'index'
+		},
+		models.MarketSymbol{
+			symbol: 'nzNZX50'
+			name:   '新西兰NZX50'
+			market: 'index'
+		},
+		models.MarketSymbol{
+			symbol: 'idJKSE'
+			name:   '印尼雅加达综合'
+			market: 'index'
+		},
+		models.MarketSymbol{
+			symbol: 'myKLSE'
+			name:   '马来西亚KLCI'
+			market: 'index'
+		},
+		models.MarketSymbol{
+			symbol: 'thSET'
+			name:   '泰国SET'
+			market: 'index'
+		},
+		models.MarketSymbol{
+			symbol: 'phPSE'
+			name:   '菲律宾PSE'
+			market: 'index'
+		},
+		models.MarketSymbol{
+			symbol: 'vnVNINDEX'
+			name:   '越南VN30'
+			market: 'index'
 		},
 	]
 }
