@@ -533,7 +533,7 @@ MYSQL_HOST=127.0.0.1 ./world_data
 4. **大宗商品昨收为近似值**：新浪外盘以"昨结算价"近似昨收，涨跌幅按此计算。
 5. **SQL 拼接**：查询使用字符串拼接 + 增强版 `sql_escape()`（转义 `\ ' " \n \r \x00`），搜索 WHERE 条件对 OR 加括号保证优先级；生产化建议改用占位符参数化查询。
 6. **静态文件映射是显式的**：新增 CSS/JS 文件需同时在 `App.static_files` map 中注册 URL→路径映射。
-7. **`.gitignore` 忽略 `*.js`/`*.db`**：`static/js/app.js` 与所有 SQLite 文件不被 git 跟踪，`world_data.log` 同样不入库。注意 `main.v` 在编译期通过 `$embed_file('static/js/app.js')` 把前端 JS 嵌入单二进制，**构建时该文件必须存在**；若 clone 后缺失（被 gitignore），需从仓库的构建脚本或 `scripts/` 重新生成/放置 `app.js`，否则 `v -o world_data .` 会失败。
+7. **`.gitignore` 忽略 `*.js`/`*.db`**：`static/js/app.js` 与所有 SQLite 文件不被 git 跟踪，`world_data.log` 同样不入库。注意：本分支改为在运行时加载静态文件（若存在则释放到 .assets/ 并由服务端提供），因此构建失败的常见原因 `$embed_file` 不再强制要求 `static/js/app.js` 在编译时存在；但为保证前端功能正常，建议在发布前通过构建脚本生成或把 `static/js/app.js` 放回构建环境。
 8. **测试**：`v test .` 覆盖四个模块（models 格式化与分类目录、database 转义/配置 + MySQL 集成（无 DB 自动跳过）、fetch 各解析器、render 页面片段）。集成测试需要本地 MySQL 已按 §8 初始化。
 9. **V 编译器 unused 误报**：对 map key 变量 + `$interp` 字符串插值场景，V 0.5.x 可能误报 "unused variable"，不影响二进制正确性。
 
