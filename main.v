@@ -116,6 +116,9 @@ fn open_browser_later() {
 
 // is_wsl 判断是否运行在 WSL 环境
 fn is_wsl() bool {
+	if !os.exists('/proc/version') {
+		return false
+	}
 	v := os.read_file('/proc/version') or { return false }
 	return v.to_lower().contains('microsoft')
 }
