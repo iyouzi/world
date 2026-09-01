@@ -482,44 +482,30 @@ SOURCE scripts/mysql_init.sql;   -- 创建 world/world123 用户与 all_in_one �
 
 ## 9. 构建与运行 / Build & Run
 
-```sh
-# 构建（无全局变量，无需 -enable-globals）
-cd world_data && v -o world_data .
-# 或 ./scripts/build.sh
+在发布/CI 中会先生成或拷贝前端静态文件（static/js/app.js）再编译，以保证单二进制发布时前端功能可用。本仓库提供 scripts/generate_static.sh：
 
+- 本地快速开发（WSL 推荐）：
+```sh
+# 在 WSL（Ubuntu）内安装依赖（仅需一次）
+sudo apt update && sudo apt install -y build-essential libssl-dev pkg-config
+# 生成占位或拷贝前端文件（CI 会在发布时提供完整构建产物）
+./scripts/generate_static.sh
+# 构建
+v -o world_data .
 # 格式化
 v fmt -w .
-
-# 运行全部测试（database 集成测试需 MySQL，不可用时自动跳过）
+# 测试
 v test .
-
 # 运行（需 MySQL 已启动）
 MYSQL_HOST=127.0.0.1 ./world_data
-# 浏览器访问 http://localhost:3003
-
-# 启动 + 冒烟测试（/, /api/stats, /category, /country, /market, /static）
-./scripts/run_server.sh
 ```
 
-> **English:**
-> ```sh
-> # Build (no globals, no -enable-globals needed)
-> cd world_data && v -o world_data .
-> # or ./scripts/build.sh
->
-> # Format
-> v fmt -w .
->
-> # Run all tests (database integration tests need MySQL, auto-skipped if unavailable)
-> v test .
->
-> # Run (MySQL must be started)
-> MYSQL_HOST=127.0.0.1 ./world_data
-> # Open http://localhost:3003 in a browser
->
-> # Launch + smoke test (/, /api/stats, /category, /country, /market, /static)
-> ./scripts/run_server.sh
-> ```
+- 在 CI/发布（已添加示例 GitHub Actions 工作流 .github/workflows/ci.yml）中，流程为：checkout → install deps → ./scripts/generate_static.sh（使用 CI 提供的构建产物或生成占位）→ v fmt → v test → v -o world_data → 上传构建产物。
+
+> English (short): Use scripts/generate_static.sh in CI to ensure static/js/app.js exists before building. Prefer building inside WSL or CI where libssl-dev is available. Steps: generate static → v fmt → v test → v -o world_data.
+
+# 本地 Windows 注意
+- 在 Windows 原生环境编译需要 OpenSSL 开发头（<openssl/ecdsa.h>）。推荐在 WSL 中构建（apt install libssl-dev）或用 MSYS2 安装 mingw-w64-openssl。
 
 修改代码后的验证顺序：`v fmt -w .` → `v -o world_data .` → 启动 MySQL → `scripts/run_server.sh` 检查各路由 HTTP 状态码与 `world_data/world_data.log` 尾部日志。
 
