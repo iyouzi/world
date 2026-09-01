@@ -25,18 +25,28 @@ fn config() mysql.Config {
 	mut user := os.getenv('MYSQL_USER')
 	mut pass := os.getenv('MYSQL_PASS')
 	mut dbname := os.getenv('MYSQL_DB')
-	if host == '' { host = '127.0.0.1' }
-	if port == 0 { port = 3306 }
-	if user == '' { user = 'world' }
-	if pass == '' { pass = 'world123' }
-	if dbname == '' { dbname = 'all_in_one' }
+	if host == '' {
+		host = '127.0.0.1'
+	}
+	if port == 0 {
+		port = 3306
+	}
+	if user == '' {
+		user = 'world'
+	}
+	if pass == '' {
+		pass = 'world123'
+	}
+	if dbname == '' {
+		dbname = 'all_in_one'
+	}
 	return mysql.Config{
-		host:     host
-		port:     port
-		user:     user
+		host: host
+		port: port
+		user: user
 		username: user
 		password: pass
-		dbname:   dbname
+		dbname: dbname
 	}
 }
 
@@ -130,11 +140,11 @@ pub fn (mut d Database) init_schema() ! {
 pub fn ensure_database() ! {
 	cfg := config()
 	mut m := mysql.connect(mysql.Config{
-		host:     cfg.host
-		port:     cfg.port
+		host: cfg.host
+		port: cfg.port
 		username: cfg.username
 		password: cfg.password
-		dbname:   'mysql'
+		dbname: 'mysql'
 	}) or { return error('连接系统库失败: ${err}') }
 	dbname := cfg.dbname
 	// 仅当库不存在时创建，避免每次启动都执行 CREATE DATABASE
@@ -188,7 +198,7 @@ pub fn (d &Database) log_fetch(source string, status string, message string, rec
 	m := d.handle()
 	now_str := format_datetime(time.now())
 	m.exec("INSERT INTO fetch_logs (source, status, message, records, started_at, duration_ms) VALUES ('${sql_escape(source)}', '${sql_escape(status)}', '${sql_escape(message)}', ${records}, '${now_str}', ${duration_ms})") or {
-		log_line('fetch', '写入 fetch_logs 失败: $err')
+		log_line('fetch', '写入 fetch_logs 失败: \$err')
 	}
 }
 
@@ -205,12 +215,10 @@ fn format_datetime(t time.Time) string {
 
 // sql_escape 安全转义：反斜杠优先（避免 '→\' 再次被解释），单/双引号，控制字符。
 fn sql_escape(s string) string {
-	return s.replace('\\', '\\\\').replace("'", "\\'").replace('"', '\\"').replace('\n', '\\n').replace('\r',
-		'').replace('\x00', '')
+	return s.replace('\\', '\\\\').replace("'", "\\'").replace('"', '\\"').replace('\n', '\\n').replace('\r', '').replace('\0', '')
 }
 
 // ============ SQLite -> MySQL 导入（作为初始数据）============
-
 pub struct ImportResult {
 pub mut:
 	countries  int
@@ -221,9 +229,9 @@ pub mut:
 // import_from_sqlite 从给定 SQLite 文件导入（若存在）
 pub fn (mut d Database) import_from_sqlite(sqlite_path string) !ImportResult {
 	if !os.exists(sqlite_path) {
-		return error('SQLite 文件不存在: $sqlite_path')
+		return error('SQLite 文件不存在: \$sqlite_path')
 	}
-	mut sdb := sqlite.connect(sqlite_path) or { return error('打开 SQLite 失败: $err') }
+	mut sdb := sqlite.connect(sqlite_path) or { return error('打开 SQLite 失败: \$err') }
 	defer {
 		sdb.close() or {}
 	}
@@ -283,13 +291,27 @@ fn (mut d Database) import_worldbank_sqlite(sdb sqlite.DB) !int {
 
 fn indicator_label(code string) string {
 	match code {
-		'NY.GDP.MKTP.CD' { return 'GDP' }
-		'SP.POP.TOTL' { return 'Population' }
-		'SP.DYN.LE00.IN' { return 'Life expectancy' }
-		'NY.GDP.PCAP.KD' { return 'GDP per capita' }
-		'FP.CPI.TOTL.ZG' { return 'Inflation %' }
-		'SL.UEM.TOTL.NE.ZS' { return 'Unemployment %' }
-		else { return code }
+		'NY.GDP.MKTP.CD' {
+			return 'GDP'
+		}
+		'SP.POP.TOTL' {
+			return 'Population'
+		}
+		'SP.DYN.LE00.IN' {
+			return 'Life expectancy'
+		}
+		'NY.GDP.PCAP.KD' {
+			return 'GDP per capita'
+		}
+		'FP.CPI.TOTL.ZG' {
+			return 'Inflation %'
+		}
+		'SL.UEM.TOTL.NE.ZS' {
+			return 'Unemployment %'
+		}
+		else {
+			return code
+		}
 	}
 }
 
@@ -307,7 +329,7 @@ pub fn (d &Database) backfill_iso3() int {
 		if iso3 == '' {
 			continue
 		}
-		m.exec("UPDATE countries SET iso3 = '${iso3}' WHERE iso2 = '${sql_escape(r.vals[0])}'") or {
+		m.exec("UPDATE countries SET iso3 = '${sql_escape(iso3)}' WHERE iso2 = '${sql_escape(r.vals[0])}'") or {
 			continue
 		}
 		fixed++
@@ -360,8 +382,7 @@ fn market_of(symbol string, source string) string {
 	if sym_low.len >= 6 {
 		quote3 := sym_low[3..6]
 		base3 := sym_low[0..3]
-		if quote3 == 'usd' || quote3 == 'cny' || base3 == 'usd' || base3 == 'eur' || base3 == 'gbp'
-			|| base3 == 'aud' {
+		if quote3 == 'usd' || quote3 == 'cny' || base3 == 'usd' || base3 == 'eur' || base3 == 'gbp' || base3 == 'aud' {
 			return 'fx'
 		}
 	}
@@ -382,7 +403,6 @@ fn market_of(symbol string, source string) string {
 }
 
 // ============ 查询接口（基于 exec 解析 Row）============
-
 fn to_i(s string) int {
 	return s.int()
 }
@@ -404,12 +424,12 @@ pub fn (d &Database) get_countries(limit int, offset int, search string) ![]mode
 	for r in rows {
 		v := r.vals
 		out << models.Country{
-			id:         to_i(v[0])
-			iso2:       v[1]
-			iso3:       v[2]
-			name:       v[3]
-			region:     v[4]
-			income:     v[5]
+			id: to_i(v[0])
+			iso2: v[1]
+			iso3: v[2]
+			name: v[3]
+			region: v[4]
+			income: v[5]
 			created_at: v[6]
 		}
 	}
@@ -448,20 +468,16 @@ pub fn (d &Database) get_indicator_top(source string, indicator string, limit in
 // JOIN countries 表带回国家名称，避免同国家多年数据重复出现。
 pub fn (d &Database) get_country_indicator_top(source string, indicator string, limit int) ![]models.CountryGdp {
 	m := d.handle()
-	q := 'SELECT c.iso2, c.name, i.value, i.year FROM indicators i ' +
-		'JOIN countries c ON c.iso2 = i.country_iso ' +
-		"WHERE i.source = '${sql_escape(source)}' AND i.indicator = '${sql_escape(indicator)}' " +
-		"AND i.year = (SELECT MAX(year) FROM indicators i2 WHERE i2.country_iso = i.country_iso AND i2.source = '${sql_escape(source)}' AND i2.indicator = '${sql_escape(indicator)}') " +
-		'ORDER BY i.value DESC LIMIT ${limit}'
+	q := 'SELECT c.iso2, c.name, i.value, i.year FROM indicators i ' + 'JOIN countries c ON c.iso2 = i.country_iso ' + "WHERE i.source = '${sql_escape(source)}' AND i.indicator = '${sql_escape(indicator)}' " + "AND i.year = (SELECT MAX(year) FROM indicators i2 WHERE i2.country_iso = i.country_iso AND i2.source = '${sql_escape(source)}' AND i2.indicator = '${sql_escape(indicator)}') " + 'ORDER BY i.value DESC LIMIT ${limit}'
 	rows := m.exec(q) or { return []models.CountryGdp{} }
 	mut out := []models.CountryGdp{}
 	for r in rows {
 		v := r.vals
 		out << models.CountryGdp{
-			iso2:  v[0]
-			name:  v[1]
+			iso2: v[0]
+			name: v[1]
 			value: v[2].f64()
-			year:  v[3].int()
+			year: v[3].int()
 		}
 	}
 	return out
@@ -472,20 +488,16 @@ pub fn (d &Database) get_country_indicator_top(source string, indicator string, 
 pub fn (d &Database) get_country_gdp_top(limit int) ![]models.CountryGdp {
 	m := d.handle()
 	// 子查询：每个国家取最新年份的记录，外层按 value 排序
-	q := 'SELECT c.iso2, c.name, i.value, i.year FROM indicators i ' +
-		'JOIN countries c ON c.iso2 = i.country_iso ' +
-		"WHERE i.source = 'worldbank' AND i.indicator = 'NY.GDP.MKTP.CD' " +
-		"AND i.year = (SELECT MAX(year) FROM indicators i2 WHERE i2.country_iso = i.country_iso AND i2.source = 'worldbank' AND i2.indicator = 'NY.GDP.MKTP.CD') " +
-		'ORDER BY i.value DESC LIMIT ${limit}'
+	q := 'SELECT c.iso2, c.name, i.value, i.year FROM indicators i ' + 'JOIN countries c ON c.iso2 = i.country_iso ' + "WHERE i.source = 'worldbank' AND i.indicator = 'NY.GDP.MKTP.CD' " + "AND i.year = (SELECT MAX(year) FROM indicators i2 WHERE i2.country_iso = i.country_iso AND i2.source = 'worldbank' AND i2.indicator = 'NY.GDP.MKTP.CD') " + 'ORDER BY i.value DESC LIMIT ${limit}'
 	rows := m.exec(q) or { return []models.CountryGdp{} }
 	mut out := []models.CountryGdp{}
 	for r in rows {
 		v := r.vals
 		out << models.CountryGdp{
-			iso2:  v[0]
-			name:  v[1]
+			iso2: v[0]
+			name: v[1]
 			value: v[2].f64()
-			year:  v[3].int()
+			year: v[3].int()
 		}
 	}
 	return out
@@ -497,27 +509,66 @@ pub fn (d &Database) get_home_countries() ![]models.HomeCountry {
 	m := d.handle()
 	// G20 成员 + 其他影响力较大的国家（约 50 个）
 	countries := [
-		'US', 'CN', 'JP', 'DE', 'IN', 'GB', 'FR', 'BR', 'IT', 'CA',
-		'KR', 'RU', 'AU', 'MX', 'ES', 'ID', 'TR', 'SA', 'NL', 'CH',
-		'PL', 'SE', 'BE', 'NO', 'AT', 'TH', 'IE', 'IL', 'ZA', 'DK',
-		'AR', 'SG', 'MY', 'PH', 'EG', 'NG', 'CL', 'CO', 'PK', 'BD',
-		'VN', 'PE', 'CZ', 'RO', 'NZ', 'FI', 'PT', 'GR', 'PE', 'NG',
+		'US',
+		'CN',
+		'JP',
+		'DE',
+		'IN',
+		'GB',
+		'FR',
+		'BR',
+		'IT',
+		'CA',
+		'KR',
+		'RU',
+		'AU',
+		'MX',
+		'ES',
+		'ID',
+		'TR',
+		'SA',
+		'NL',
+		'CH',
+		'PL',
+		'SE',
+		'BE',
+		'NO',
+		'AT',
+		'TH',
+		'IE',
+		'IL',
+		'ZA',
+		'DK',
+		'AR',
+		'SG',
+		'MY',
+		'PH',
+		'EG',
+		'NG',
+		'CL',
+		'CO',
+		'PK',
+		'BD',
+		'VN',
+		'PE',
+		'CZ',
+		'RO',
+		'NZ',
+		'FI',
+		'PT',
+		'GR',
+		'PE',
+		'NG',
 	]
 	mut q_iso := ''
 	for i, c in countries {
-		if i > 0 { q_iso += ',' }
+		if i > 0 {
+			q_iso += ','
+		}
 		q_iso += "'" + c + "'"
 	}
 	// 构建子查询：每个国家取各指标最新年份
-	mut sql_str := "SELECT c.iso2, c.name, " +
-		"(SELECT i.value FROM indicators i WHERE i.country_iso=c.iso2 AND i.source='worldbank' AND i.indicator='SP.POP.TOTL' ORDER BY i.year DESC LIMIT 1) AS pop, " +
-		"(SELECT i.value FROM indicators i WHERE i.country_iso=c.iso2 AND i.source='worldbank' AND i.indicator='AG.LND.TOTL.K2' ORDER BY i.year DESC LIMIT 1) AS area, " +
-		"(SELECT i.value FROM indicators i WHERE i.country_iso=c.iso2 AND i.source='worldbank' AND i.indicator='NY.GDP.MKTP.CD' ORDER BY i.year DESC LIMIT 1) AS gdp, " +
-		"(SELECT i.value FROM indicators i WHERE i.country_iso=c.iso2 AND i.source='worldbank' AND i.indicator='NY.GDP.MKTP.PP.CD' ORDER BY i.year DESC LIMIT 1) AS gdp_ppp, " +
-		"(SELECT i.value FROM indicators i WHERE i.country_iso=c.iso2 AND i.source='worldbank' AND i.indicator='NY.GDP.PCAP.CD' ORDER BY i.year DESC LIMIT 1) AS gdppc, " +
-		"(SELECT i.value FROM indicators i WHERE i.country_iso=c.iso2 AND i.source='worldbank' AND i.indicator='NY.GDP.PCAP.PP.CD' ORDER BY i.year DESC LIMIT 1) AS gdppc_ppp, " +
-		"(SELECT i.year FROM indicators i WHERE i.country_iso=c.iso2 AND i.source='worldbank' AND i.indicator='NY.GDP.MKTP.CD' ORDER BY i.year DESC LIMIT 1) AS yr " +
-		"FROM countries c WHERE c.iso2 IN (" + q_iso + ") ORDER BY gdp DESC"
+	mut sql_str := 'SELECT c.iso2, c.name, ' + "(SELECT i.value FROM indicators i WHERE i.country_iso=c.iso2 AND i.source='worldbank' AND i.indicator='SP.POP.TOTL' ORDER BY i.year DESC LIMIT 1) AS pop, " + "(SELECT i.value FROM indicators i WHERE i.country_iso=c.iso2 AND i.source='worldbank' AND i.indicator='AG.LND.TOTL.K2' ORDER BY i.year DESC LIMIT 1) AS area, " + "(SELECT i.value FROM indicators i WHERE i.country_iso=c.iso2 AND i.source='worldbank' AND i.indicator='NY.GDP.MKTP.CD' ORDER BY i.year DESC LIMIT 1) AS gdp, " + "(SELECT i.value FROM indicators i WHERE i.country_iso=c.iso2 AND i.source='worldbank' AND i.indicator='NY.GDP.MKTP.PP.CD' ORDER BY i.year DESC LIMIT 1) AS gdp_ppp, " + "(SELECT i.value FROM indicators i WHERE i.country_iso=c.iso2 AND i.source='worldbank' AND i.indicator='NY.GDP.PCAP.CD' ORDER BY i.year DESC LIMIT 1) AS gdppc, " + "(SELECT i.value FROM indicators i WHERE i.country_iso=c.iso2 AND i.source='worldbank' AND i.indicator='NY.GDP.PCAP.PP.CD' ORDER BY i.year DESC LIMIT 1) AS gdppc_ppp, " + "(SELECT i.year FROM indicators i WHERE i.country_iso=c.iso2 AND i.source='worldbank' AND i.indicator='NY.GDP.MKTP.CD' ORDER BY i.year DESC LIMIT 1) AS yr " + 'FROM countries c WHERE c.iso2 IN (' + q_iso + ') ORDER BY gdp DESC'
 	rows := m.exec(sql_str) or { return []models.HomeCountry{} }
 	mut out := []models.HomeCountry{}
 	for r in rows {
@@ -533,17 +584,17 @@ pub fn (d &Database) get_home_countries() ![]models.HomeCountry {
 			ppp_per_sqkm = gdp_ppp / area
 		}
 		out << models.HomeCountry{
-			iso2:           v[0]
-			name:           v[1]
-			population:     pop
-			land_area:      area
-			gdp:            gdp
-			gdp_ppp:        gdp_ppp
+			iso2: v[0]
+			name: v[1]
+			population: pop
+			land_area: area
+			gdp: gdp
+			gdp_ppp: gdp_ppp
 			gdp_per_capita: gdppc
-			gdp_ppc_ppp:    gdppc_ppp
-			ppp_per_sqkm:   ppp_per_sqkm
-			note:           ''
-			year:           to_i(v[8])
+			gdp_ppc_ppp: gdppc_ppp
+			ppp_per_sqkm: ppp_per_sqkm
+			note: ''
+			year: to_i(v[8])
 		}
 	}
 	return out
@@ -554,15 +605,15 @@ fn parse_indicators(rows []mysql.Row) []models.Indicator {
 	for r in rows {
 		v := r.vals
 		out << models.Indicator{
-			id:          to_i(v[0])
-			source:      v[1]
+			id: to_i(v[0])
+			source: v[1]
 			country_iso: v[2]
-			indicator:   v[3]
-			label:       v[4]
-			year:        to_i(v[5])
-			value:       to_f(v[6])
-			unit:        v[7]
-			updated_at:  v[8]
+			indicator: v[3]
+			label: v[4]
+			year: to_i(v[5])
+			value: to_f(v[6])
+			unit: v[7]
+			updated_at: v[8]
 		}
 	}
 	return out
@@ -581,7 +632,9 @@ pub fn (d &Database) get_world_stats() !models.WorldStats {
 		rows2 := m.exec("SELECT SUM(value) AS s FROM indicators WHERE source='worldbank' AND indicator='NY.GDP.MKTP.CD'") or {
 			return ws
 		}
-		if rows2.len > 0 { ws.total_gdp = to_f(rows2[0].vals[0]) }
+		if rows2.len > 0 {
+			ws.total_gdp = to_f(rows2[0].vals[0])
+		}
 	}
 	// 世界人口：优先 WLD，回退累加
 	ws.total_population = d.get_wld_indicator_value('SP.POP.TOTL')
@@ -589,7 +642,9 @@ pub fn (d &Database) get_world_stats() !models.WorldStats {
 		rows2 := m.exec("SELECT SUM(value) AS s FROM indicators WHERE source='worldbank' AND indicator='SP.POP.TOTL'") or {
 			return ws
 		}
-		if rows2.len > 0 { ws.total_population = to_f(rows2[0].vals[0]) }
+		if rows2.len > 0 {
+			ws.total_population = to_f(rows2[0].vals[0])
+		}
 	}
 	// 平均预期寿命：用 WLD 最新值，回退各国平均
 	ws.avg_life = d.get_wld_indicator_value('SP.DYN.LE00.IN')
@@ -597,7 +652,9 @@ pub fn (d &Database) get_world_stats() !models.WorldStats {
 		rows3 := m.exec("SELECT AVG(value) AS s FROM indicators WHERE source='worldbank' AND indicator='SP.DYN.LE00.IN'") or {
 			return ws
 		}
-		if rows3.len > 0 { ws.avg_life = to_f(rows3[0].vals[0]) }
+		if rows3.len > 0 {
+			ws.avg_life = to_f(rows3[0].vals[0])
+		}
 	}
 	// WLD 补充指标（可选，无数据时保持 0）
 	ws.gdp_per_capita = d.get_wld_indicator_value('NY.GDP.PCAP.KD')
@@ -618,7 +675,9 @@ pub fn (d &Database) get_world_pop() !f64 {
 	m := d.handle()
 	// 优先 WLD 汇总数据，回退到各国累加
 	v := d.get_wld_indicator_value('SP.POP.TOTL')
-	if v != 0 { return v }
+	if v != 0 {
+		return v
+	}
 	rows := m.exec("SELECT SUM(value) AS s FROM indicators WHERE source='worldbank' AND indicator='SP.POP.TOTL'") or {
 		return 0.0
 	}
@@ -660,16 +719,16 @@ pub fn (d &Database) get_market_quotes(market string, search string) ![]models.M
 	for r in rows {
 		v := r.vals
 		out << models.MarketQuote{
-			id:         to_i(v[0])
-			symbol:     v[1]
-			name:       v[2]
-			market:     v[3]
-			price:      to_f(v[4])
+			id: to_i(v[0])
+			symbol: v[1]
+			name: v[2]
+			market: v[3]
+			price: to_f(v[4])
 			prev_close: to_f(v[5])
-			change:     to_f(v[6])
+			change: to_f(v[6])
 			change_pct: to_f(v[7])
-			volume:     v[8].i64()
-			source:     v[9]
+			volume: v[8].i64()
+			source: v[9]
 			updated_at: v[10]
 		}
 	}
@@ -694,12 +753,12 @@ pub fn (d &Database) recent_logs(limit int) ![]models.FetchLog {
 	for r in rows {
 		v := r.vals
 		out << models.FetchLog{
-			id:          to_i(v[0])
-			source:      v[1]
-			status:      v[2]
-			message:     v[3]
-			records:     to_i(v[4])
-			started_at:  v[5]
+			id: to_i(v[0])
+			source: v[1]
+			status: v[2]
+			message: v[3]
+			records: to_i(v[4])
+			started_at: v[5]
 			duration_ms: to_i(v[6])
 		}
 	}
@@ -779,9 +838,7 @@ pub fn (mut d Database) import_owid_csv(csv_path string, indicator_code string, 
 		// 确保国家存在于 countries 表
 		d.ensure_country(country_iso, entity_name, iso3_code)
 		// 插入或更新 indicators（使用 INSERT IGNORE 避免重复）
-		q := 'INSERT INTO indicators (source, country_iso, indicator, label, year, value, unit) ' +
-			"VALUES ('owid', '${sql_escape(country_iso)}', '${sql_escape(indicator_code)}', " + "'${sql_escape(label)}', ${year}, ${value}, '${sql_escape(unit)}') " +
-			'ON DUPLICATE KEY UPDATE value=VALUES(value), updated_at=CURRENT_TIMESTAMP'
+		q := 'INSERT INTO indicators (source, country_iso, indicator, label, year, value, unit) ' + "VALUES ('owid', '${sql_escape(country_iso)}', '${sql_escape(indicator_code)}', " + "'${sql_escape(label)}', ${year}, ${value}, '${sql_escape(unit)}') " + 'ON DUPLICATE KEY UPDATE value=VALUES(value), updated_at=CURRENT_TIMESTAMP'
 		m.exec(q) or { continue }
 		count++
 	}
@@ -800,8 +857,7 @@ fn (mut d Database) ensure_country(iso2 string, name string, iso3 string) {
 	if rows.len > 0 {
 		return
 	}
-	q := 'INSERT INTO countries (iso2, iso3, name, region, income) ' +
-		"VALUES ('${sql_escape(iso2)}', '${sql_escape(iso3)}', '${sql_escape(name)}', '', '')"
+	q := 'INSERT INTO countries (iso2, iso3, name, region, income) ' + "VALUES ('${sql_escape(iso2)}', '${sql_escape(iso3)}', '${sql_escape(name)}', '', '')"
 	m.exec(q) or {}
 }
 
@@ -824,8 +880,7 @@ pub fn (d &Database) get_owid_indicators(topic_slug string, limit int) ![]models
 		conditions << "indicator = '${sql_escape(code)}'"
 	}
 	where := conditions.join(' OR ')
-	q := 'SELECT id, source, country_iso, indicator, label, year, value, unit, updated_at ' +
-		"FROM indicators WHERE source = 'owid' AND (${where}) " + 'ORDER BY year DESC, country_iso LIMIT ${limit}'
+	q := 'SELECT id, source, country_iso, indicator, label, year, value, unit, updated_at ' + "FROM indicators WHERE source = 'owid' AND (${where}) " + 'ORDER BY year DESC, country_iso LIMIT ${limit}'
 	rows := m.exec(q) or { return []models.Indicator{} }
 	return parse_indicators(rows)
 }
@@ -833,11 +888,7 @@ pub fn (d &Database) get_owid_indicators(topic_slug string, limit int) ![]models
 // get_owid_indicator_top 获取 OWID 某指标的 Top N（按最新年份、值降序）
 pub fn (d &Database) get_owid_indicator_top(indicator string, limit int) ![]models.Indicator {
 	m := d.handle()
-	q := 'SELECT id, source, country_iso, indicator, label, year, value, unit, updated_at ' +
-		"FROM indicators WHERE source = 'owid' AND indicator = '${sql_escape(indicator)}' " +
-		'AND year = (SELECT MAX(year) FROM indicators i2 WHERE i2.country_iso = indicators.country_iso ' +
-		"AND i2.source = 'owid' AND i2.indicator = '${sql_escape(indicator)}') " +
-		'ORDER BY value DESC LIMIT ${limit}'
+	q := 'SELECT id, source, country_iso, indicator, label, year, value, unit, updated_at ' + "FROM indicators WHERE source = 'owid' AND indicator = '${sql_escape(indicator)}' " + 'AND year = (SELECT MAX(year) FROM indicators i2 WHERE i2.country_iso = indicators.country_iso ' + "AND i2.source = 'owid' AND i2.indicator = '${sql_escape(indicator)}') " + 'ORDER BY value DESC LIMIT ${limit}'
 	rows := m.exec(q) or { return []models.Indicator{} }
 	return parse_indicators(rows)
 }
@@ -845,9 +896,7 @@ pub fn (d &Database) get_owid_indicator_top(indicator string, limit int) ![]mode
 // get_owid_country_indicators 获取某国家的全部 OWID 指标
 pub fn (d &Database) get_owid_country_indicators(iso2 string) ![]models.Indicator {
 	m := d.handle()
-	q := 'SELECT id, source, country_iso, indicator, label, year, value, unit, updated_at ' +
-		"FROM indicators WHERE source = 'owid' AND country_iso = '${sql_escape(iso2)}' " +
-		'ORDER BY indicator, year DESC'
+	q := 'SELECT id, source, country_iso, indicator, label, year, value, unit, updated_at ' + "FROM indicators WHERE source = 'owid' AND country_iso = '${sql_escape(iso2)}' " + 'ORDER BY indicator, year DESC'
 	rows := m.exec(q) or { return []models.Indicator{} }
 	return parse_indicators(rows)
 }
