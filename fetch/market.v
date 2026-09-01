@@ -15,595 +15,595 @@ fn default_symbols() []models.MarketSymbol {
 		// A股
 		models.MarketSymbol{
 			symbol: 'sh600519'
-			name:   '贵州茅台'
+			name: '贵州茅台'
 			market: 'cn'
 		},
 		models.MarketSymbol{
 			symbol: 'sz000001'
-			name:   '平安银行'
+			name: '平安银行'
 			market: 'cn'
 		},
 		models.MarketSymbol{
 			symbol: 'sh601318'
-			name:   '中国平安'
+			name: '中国平安'
 			market: 'cn'
 		},
 		models.MarketSymbol{
 			symbol: 'sh600036'
-			name:   '招商银行'
+			name: '招商银行'
 			market: 'cn'
 		},
 		models.MarketSymbol{
 			symbol: 'sz000858'
-			name:   '五粮液'
+			name: '五粮液'
 			market: 'cn'
 		},
 		models.MarketSymbol{
 			symbol: 'sh601899'
-			name:   '紫金矿业'
+			name: '紫金矿业'
 			market: 'cn'
 		},
 		models.MarketSymbol{
 			symbol: 'sz002594'
-			name:   '比亚迪'
+			name: '比亚迪'
 			market: 'cn'
 		},
 		models.MarketSymbol{
 			symbol: 'sh600900'
-			name:   '长江电力'
+			name: '长江电力'
 			market: 'cn'
 		},
 		models.MarketSymbol{
 			symbol: 'sz000333'
-			name:   '美的集团'
+			name: '美的集团'
 			market: 'cn'
 		},
 		models.MarketSymbol{
 			symbol: 'sh601012'
-			name:   '隆基绿能'
+			name: '隆基绿能'
 			market: 'cn'
 		},
 		models.MarketSymbol{
 			symbol: 'sz002475'
-			name:   '立讯精密'
+			name: '立讯精密'
 			market: 'cn'
 		},
 		models.MarketSymbol{
 			symbol: 'sh600276'
-			name:   '恒瑞医药'
+			name: '恒瑞医药'
 			market: 'cn'
 		},
 		models.MarketSymbol{
 			symbol: 'sz000568'
-			name:   '泸州老窖'
+			name: '泸州老窖'
 			market: 'cn'
 		},
 		models.MarketSymbol{
 			symbol: 'sh601166'
-			name:   '兴业银行'
+			name: '兴业银行'
 			market: 'cn'
 		},
 		models.MarketSymbol{
 			symbol: 'sh600030'
-			name:   '中信证券'
+			name: '中信证券'
 			market: 'cn'
 		},
 		models.MarketSymbol{
 			symbol: 'sz002230'
-			name:   '科大讯飞'
+			name: '科大讯飞'
 			market: 'cn'
 		},
 		models.MarketSymbol{
 			symbol: 'sh688981'
-			name:   '中芯国际'
+			name: '中芯国际'
 			market: 'cn'
 		},
 		// 港股
 		models.MarketSymbol{
 			symbol: 'hk00700'
-			name:   '腾讯控股'
+			name: '腾讯控股'
 			market: 'hk'
 		},
 		models.MarketSymbol{
 			symbol: 'hk09988'
-			name:   '阿里巴巴'
+			name: '阿里巴巴'
 			market: 'hk'
 		},
 		models.MarketSymbol{
 			symbol: 'hk09618'
-			name:   '京东集团'
+			name: '京东集团'
 			market: 'hk'
 		},
 		models.MarketSymbol{
 			symbol: 'hk03690'
-			name:   '美团'
+			name: '美团'
 			market: 'hk'
 		},
 		models.MarketSymbol{
 			symbol: 'hk09888'
-			name:   '百度集团'
+			name: '百度集团'
 			market: 'hk'
 		},
 		models.MarketSymbol{
 			symbol: 'hk01810'
-			name:   '小米集团'
+			name: '小米集团'
 			market: 'hk'
 		},
 		models.MarketSymbol{
 			symbol: 'hk09999'
-			name:   '网易'
+			name: '网易'
 			market: 'hk'
 		},
 		models.MarketSymbol{
 			symbol: 'hk00941'
-			name:   '中国移动'
+			name: '中国移动'
 			market: 'hk'
 		},
 		models.MarketSymbol{
 			symbol: 'hk02318'
-			name:   '中国平安'
+			name: '中国平安'
 			market: 'hk'
 		},
 		models.MarketSymbol{
 			symbol: 'hk00388'
-			name:   '香港交易所'
+			name: '香港交易所'
 			market: 'hk'
 		},
 		models.MarketSymbol{
 			symbol: 'hk01211'
-			name:   '比亚迪股份'
+			name: '比亚迪股份'
 			market: 'hk'
 		},
 		models.MarketSymbol{
 			symbol: 'hk09868'
-			name:   '小鹏汽车'
+			name: '小鹏汽车'
 			market: 'hk'
 		},
 		models.MarketSymbol{
 			symbol: 'hk02015'
-			name:   '理想汽车'
+			name: '理想汽车'
 			market: 'hk'
 		},
 		models.MarketSymbol{
 			symbol: 'hk09866'
-			name:   '蔚来'
+			name: '蔚来'
 			market: 'hk'
 		},
 		models.MarketSymbol{
 			symbol: 'hk00005'
-			name:   '汇丰控股'
+			name: '汇丰控股'
 			market: 'hk'
 		},
 		models.MarketSymbol{
 			symbol: 'hk00883'
-			name:   '中国海洋石油'
+			name: '中国海洋石油'
 			market: 'hk'
 		},
 		models.MarketSymbol{
 			symbol: 'hk02628'
-			name:   '中国人寿'
+			name: '中国人寿'
 			market: 'hk'
 		},
 		models.MarketSymbol{
 			symbol: 'hk01398'
-			name:   '工商银行'
+			name: '工商银行'
 			market: 'hk'
 		},
 		models.MarketSymbol{
 			symbol: 'hk00939'
-			name:   '建设银行'
+			name: '建设银行'
 			market: 'hk'
 		},
 		models.MarketSymbol{
 			symbol: 'hk03988'
-			name:   '中国银行'
+			name: '中国银行'
 			market: 'hk'
 		},
 		models.MarketSymbol{
 			symbol: 'hk02382'
-			name:   '舜宇光学'
+			name: '舜宇光学'
 			market: 'hk'
 		},
 		models.MarketSymbol{
 			symbol: 'hk00241'
-			name:   '阿里健康'
+			name: '阿里健康'
 			market: 'hk'
 		},
 		models.MarketSymbol{
 			symbol: 'hk06060'
-			name:   '众安在线'
+			name: '众安在线'
 			market: 'hk'
 		},
 		models.MarketSymbol{
 			symbol: 'hk01024'
-			name:   '快手'
+			name: '快手'
 			market: 'hk'
 		},
 		models.MarketSymbol{
 			symbol: 'hk09626'
-			name:   '哔哩哔哩'
+			name: '哔哩哔哩'
 			market: 'hk'
 		},
 		models.MarketSymbol{
 			symbol: 'hk02518'
-			name:   '汽车之家'
+			name: '汽车之家'
 			market: 'hk'
 		},
 		models.MarketSymbol{
 			symbol: 'hk00772'
-			name:   '阅文集团'
+			name: '阅文集团'
 			market: 'hk'
 		},
 		models.MarketSymbol{
 			symbol: 'hk09961'
-			name:   '携程集团'
+			name: '携程集团'
 			market: 'hk'
 		},
 		models.MarketSymbol{
 			symbol: 'hk02020'
-			name:   '安踏体育'
+			name: '安踏体育'
 			market: 'hk'
 		},
 		// 美股
 		models.MarketSymbol{
 			symbol: 'usAAPL'
-			name:   'Apple'
+			name: 'Apple'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usMSFT'
-			name:   'Microsoft'
+			name: 'Microsoft'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usNVDA'
-			name:   'NVIDIA'
+			name: 'NVIDIA'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usGOOGL'
-			name:   'Alphabet'
+			name: 'Alphabet'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usAMZN'
-			name:   'Amazon'
+			name: 'Amazon'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usMETA'
-			name:   'Meta'
+			name: 'Meta'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usTSLA'
-			name:   'Tesla'
+			name: 'Tesla'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usBRK.B'
-			name:   'Berkshire Hathaway'
+			name: 'Berkshire Hathaway'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usLLY'
-			name:   'Eli Lilly'
+			name: 'Eli Lilly'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usAVGO'
-			name:   'Broadcom'
+			name: 'Broadcom'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usTSM'
-			name:   'TSMC'
+			name: 'TSMC'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usWMT'
-			name:   'Walmart'
+			name: 'Walmart'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usJPM'
-			name:   'JPMorgan Chase'
+			name: 'JPMorgan Chase'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usV'
-			name:   'Visa'
+			name: 'Visa'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usUNH'
-			name:   'UnitedHealth'
+			name: 'UnitedHealth'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usMA'
-			name:   'Mastercard'
+			name: 'Mastercard'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usXOM'
-			name:   'Exxon Mobil'
+			name: 'Exxon Mobil'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usCOST'
-			name:   'Costco'
+			name: 'Costco'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usHD'
-			name:   'Home Depot'
+			name: 'Home Depot'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usPG'
-			name:   'Procter & Gamble'
+			name: 'Procter & Gamble'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usABBV'
-			name:   'AbbVie'
+			name: 'AbbVie'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usCRM'
-			name:   'Salesforce'
+			name: 'Salesforce'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usNFLX'
-			name:   'Netflix'
+			name: 'Netflix'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usMRK'
-			name:   'Merck'
+			name: 'Merck'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usBAC'
-			name:   'Bank of America'
+			name: 'Bank of America'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usAMD'
-			name:   'AMD'
+			name: 'AMD'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usORCL'
-			name:   'Oracle'
+			name: 'Oracle'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usKO'
-			name:   'Coca-Cola'
+			name: 'Coca-Cola'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usPEP'
-			name:   'PepsiCo'
+			name: 'PepsiCo'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usCVX'
-			name:   'Chevron'
+			name: 'Chevron'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usTMO'
-			name:   'Thermo Fisher'
+			name: 'Thermo Fisher'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usCSCO'
-			name:   'Cisco'
+			name: 'Cisco'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usACN'
-			name:   'Accenture'
+			name: 'Accenture'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usDHR'
-			name:   'Danaher'
+			name: 'Danaher'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usNEE'
-			name:   'NextEra Energy'
+			name: 'NextEra Energy'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usLIN'
-			name:   'Linde'
+			name: 'Linde'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usTXN'
-			name:   'Texas Instruments'
+			name: 'Texas Instruments'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usQCOM'
-			name:   'Qualcomm'
+			name: 'Qualcomm'
 			market: 'us'
 		},
 		models.MarketSymbol{
 			symbol: 'usINTC'
-			name:   'Intel'
+			name: 'Intel'
 			market: 'us'
 		},
 		// 全球指数
 		models.MarketSymbol{
 			symbol: 'sh000001'
-			name:   '上证指数'
+			name: '上证指数'
 			market: 'index'
 		},
 		models.MarketSymbol{
 			symbol: 'sz399001'
-			name:   '深证成指'
+			name: '深证成指'
 			market: 'index'
 		},
 		models.MarketSymbol{
 			symbol: 'sz399006'
-			name:   '创业板指'
+			name: '创业板指'
 			market: 'index'
 		},
 		models.MarketSymbol{
 			symbol: 'sh000688'
-			name:   '科创50'
+			name: '科创50'
 			market: 'index'
 		},
 		models.MarketSymbol{
 			symbol: 'usDJI'
-			name:   '道琼斯'
+			name: '道琼斯'
 			market: 'index'
 		},
 		models.MarketSymbol{
 			symbol: 'usIXIC'
-			name:   '纳斯达克'
+			name: '纳斯达克'
 			market: 'index'
 		},
 		models.MarketSymbol{
 			symbol: 'usSPX'
-			name:   '标普500'
+			name: '标普500'
 			market: 'index'
 		},
 		models.MarketSymbol{
 			symbol: 'hkHSI'
-			name:   '恒生指数'
+			name: '恒生指数'
 			market: 'index'
 		},
 		models.MarketSymbol{
 			symbol: 'hkHSTECH'
-			name:   '恒生科技'
+			name: '恒生科技'
 			market: 'index'
 		},
 		models.MarketSymbol{
 			symbol: 'jpNKY'
-			name:   '日经225'
+			name: '日经225'
 			market: 'index'
 		},
 		models.MarketSymbol{
 			symbol: 'gbFTSE'
-			name:   '富时100'
+			name: '富时100'
 			market: 'index'
 		},
 		models.MarketSymbol{
 			symbol: 'deDAX'
-			name:   '德国DAX'
+			name: '德国DAX'
 			market: 'index'
 		},
 		models.MarketSymbol{
 			symbol: 'frCAC'
-			name:   '法国CAC40'
+			name: '法国CAC40'
 			market: 'index'
 		},
 		models.MarketSymbol{
 			symbol: 'euSTOXX50'
-			name:   '欧洲Stoxx50'
+			name: '欧洲Stoxx50'
 			market: 'index'
 		},
 		models.MarketSymbol{
 			symbol: 'krKOSPI'
-			name:   '韩国KOSPI'
+			name: '韩国KOSPI'
 			market: 'index'
 		},
 		models.MarketSymbol{
 			symbol: 'twTAIEX'
-			name:   '台湾加权'
+			name: '台湾加权'
 			market: 'index'
 		},
 		models.MarketSymbol{
 			symbol: 'sgSTI'
-			name:   '新加坡海峡时报'
+			name: '新加坡海峡时报'
 			market: 'index'
 		},
 		models.MarketSymbol{
 			symbol: 'auAS51'
-			name:   '澳大利亚ASX200'
+			name: '澳大利亚ASX200'
 			market: 'index'
 		},
 		models.MarketSymbol{
 			symbol: 'caGSPTSE'
-			name:   '加拿大S&P/TSX'
+			name: '加拿大S&P/TSX'
 			market: 'index'
 		},
 		models.MarketSymbol{
 			symbol: 'inSENSEX'
-			name:   '印度Sensex'
+			name: '印度Sensex'
 			market: 'index'
 		},
 		models.MarketSymbol{
 			symbol: 'brBVSP'
-			name:   '巴西BOVESPA'
+			name: '巴西BOVESPA'
 			market: 'index'
 		},
 		models.MarketSymbol{
 			symbol: 'mxMXX'
-			name:   '墨西哥IPC'
+			name: '墨西哥IPC'
 			market: 'index'
 		},
 		models.MarketSymbol{
 			symbol: 'zaJ203'
-			name:   '南非JSE Top40'
+			name: '南非JSE Top40'
 			market: 'index'
 		},
 		models.MarketSymbol{
 			symbol: 'ruIMOEX'
-			name:   '俄罗斯MOEX'
+			name: '俄罗斯MOEX'
 			market: 'index'
 		},
 		models.MarketSymbol{
 			symbol: 'saTASI'
-			name:   '沙特Tadawul'
+			name: '沙特Tadawul'
 			market: 'index'
 		},
 		models.MarketSymbol{
 			symbol: 'egEGX30'
-			name:   '埃及EGX30'
+			name: '埃及EGX30'
 			market: 'index'
 		},
 		models.MarketSymbol{
 			symbol: 'trXU100'
-			name:   '土耳其XU100'
+			name: '土耳其XU100'
 			market: 'index'
 		},
 		models.MarketSymbol{
 			symbol: 'nzNZX50'
-			name:   '新西兰NZX50'
+			name: '新西兰NZX50'
 			market: 'index'
 		},
 		models.MarketSymbol{
 			symbol: 'idJKSE'
-			name:   '印尼雅加达综合'
+			name: '印尼雅加达综合'
 			market: 'index'
 		},
 		models.MarketSymbol{
 			symbol: 'myKLSE'
-			name:   '马来西亚KLCI'
+			name: '马来西亚KLCI'
 			market: 'index'
 		},
 		models.MarketSymbol{
 			symbol: 'thSET'
-			name:   '泰国SET'
+			name: '泰国SET'
 			market: 'index'
 		},
 		models.MarketSymbol{
 			symbol: 'phPSE'
-			name:   '菲律宾PSE'
+			name: '菲律宾PSE'
 			market: 'index'
 		},
 		models.MarketSymbol{
 			symbol: 'vnVNINDEX'
-			name:   '越南VN30'
+			name: '越南VN30'
 			market: 'index'
 		},
 	]
@@ -612,7 +612,7 @@ fn default_symbols() []models.MarketSymbol {
 // upsert_quote 写入/更新一条行情。注意表列名是 chg / chg_pct（change 是 MySQL 保留字）。
 fn upsert_quote(dbconn &database.Database, q models.MarketQuote) bool {
 	mut m := dbconn.handle()
-	m.exec("INSERT INTO market_quotes (symbol, name, market, price, prev_close, chg, chg_pct, volume, source) VALUES ('${esc(q.symbol)}', '${esc(q.name)}', '${esc(q.market)}', ${q.price}, ${q.prev_close}, ${q.change}, ${q.change_pct}, ${q.volume}, '${esc(q.source)}') ON DUPLICATE KEY UPDATE name=VALUES(name), market=VALUES(market), price=VALUES(price), prev_close=VALUES(prev_close), chg=VALUES(chg), chg_pct=VALUES(chg_pct), volume=VALUES(volume), source=VALUES(source), updated_at=CURRENT_TIMESTAMP") or {
+	dbconn.exec_params('INSERT INTO market_quotes (symbol, name, market, price, prev_close, chg, chg_pct, volume, source) VALUES (?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE name=VALUES(name), market=VALUES(market), price=VALUES(price), prev_close=VALUES(prev_close), chg=VALUES(chg), chg_pct=VALUES(chg_pct), volume=VALUES(volume), source=VALUES(source), updated_at=CURRENT_TIMESTAMP', q.symbol, q.name, q.market, '${q.price}', '${q.prev_close}', '${q.change}', '${q.change_pct}', '${q.volume}', q.source) or {
 		database.log_line('market', '写入行情失败 ${q.symbol}: ${err}')
 		return false
 	}
@@ -634,8 +634,7 @@ pub fn fetch_market(dbconn &database.Database) !int {
 	}
 	dur := int(time.now().unix_milli() - start.unix_milli())
 	if n == 0 {
-		dbconn.log_fetch('market', 'failed',
-			'全部 ${symbols.len} 个标的抓取失败（网络不可用？）', 0, dur)
+		dbconn.log_fetch('market', 'failed', '全部 ${symbols.len} 个标的抓取失败（网络不可用？）', 0, dur)
 		return error('market: 所有标的均抓取失败')
 	}
 	if n < symbols.len {
@@ -649,62 +648,61 @@ pub fn fetch_market(dbconn &database.Database) !int {
 // ============ 外汇汇率 ============
 // 数据源 open.er-api.com（免 key）：https://open.er-api.com/v6/latest/USD
 // 返回 1 USD 兑各币种汇率。xxxUSD 形式的货币对取倒数换算。
-
 fn fx_pairs() []models.MarketSymbol {
 	return [
 		models.MarketSymbol{
 			symbol: 'USDCNY'
-			name:   '美元/人民币'
+			name: '美元/人民币'
 			market: 'fx'
 		},
 		models.MarketSymbol{
 			symbol: 'USDJPY'
-			name:   '美元/日元'
+			name: '美元/日元'
 			market: 'fx'
 		},
 		models.MarketSymbol{
 			symbol: 'USDHKD'
-			name:   '美元/港元'
+			name: '美元/港元'
 			market: 'fx'
 		},
 		models.MarketSymbol{
 			symbol: 'USDKRW'
-			name:   '美元/韩元'
+			name: '美元/韩元'
 			market: 'fx'
 		},
 		models.MarketSymbol{
 			symbol: 'USDINR'
-			name:   '美元/卢比'
+			name: '美元/卢比'
 			market: 'fx'
 		},
 		models.MarketSymbol{
 			symbol: 'USDBRL'
-			name:   '美元/雷亚尔'
+			name: '美元/雷亚尔'
 			market: 'fx'
 		},
 		models.MarketSymbol{
 			symbol: 'USDMXN'
-			name:   '美元/比索'
+			name: '美元/比索'
 			market: 'fx'
 		},
 		models.MarketSymbol{
 			symbol: 'USDSGD'
-			name:   '美元/新加坡元'
+			name: '美元/新加坡元'
 			market: 'fx'
 		},
 		models.MarketSymbol{
 			symbol: 'EURUSD'
-			name:   '欧元/美元'
+			name: '欧元/美元'
 			market: 'fx'
 		},
 		models.MarketSymbol{
 			symbol: 'GBPUSD'
-			name:   '英镑/美元'
+			name: '英镑/美元'
 			market: 'fx'
 		},
 		models.MarketSymbol{
 			symbol: 'AUDUSD'
-			name:   '澳元/美元'
+			name: '澳元/美元'
 			market: 'fx'
 		},
 	]
@@ -718,8 +716,7 @@ pub fn fetch_fx(dbconn &database.Database) !int {
 	}
 	rates := json_rates_section(body)
 	if rates == '' {
-		dbconn.log_fetch('fx', 'failed', '汇率响应中未找到 rates 对象', 0,
-			int(time.now().unix_milli() - start.unix_milli()))
+		dbconn.log_fetch('fx', 'failed', '汇率响应中未找到 rates 对象', 0, int(time.now().unix_milli() - start.unix_milli()))
 		return error('fx: 响应缺少 rates')
 	}
 	mut n := 0
@@ -732,15 +729,15 @@ pub fn fetch_fx(dbconn &database.Database) !int {
 			continue
 		}
 		ok := upsert_quote(dbconn, models.MarketQuote{
-			symbol:     p.symbol
-			name:       p.name
-			market:     'fx'
-			price:      price
+			symbol: p.symbol
+			name: p.name
+			market: 'fx'
+			price: price
 			prev_close: price
-			change:     0.0
+			change: 0.0
 			change_pct: 0.0
-			volume:     0
-			source:     'er-api'
+			volume: 0
+			source: 'er-api'
 		})
 		if ok {
 			n++
@@ -790,7 +787,6 @@ fn json_rate(rates string, code string) f64 {
 // 数据源新浪外盘期货（免 key，GBK 编码，需 Referer）：
 // https://hq.sinajs.cn/list=hf_GC
 // 字段：0=现价 4=最高 5=最低 6=时间 7=昨结算 8=开盘 9=持仓量 13=名称
-
 struct CommodityDef {
 	symbol string // 新浪代码，如 hf_GC
 	name   string
@@ -800,35 +796,35 @@ fn commodity_defs() []CommodityDef {
 	return [
 		CommodityDef{
 			symbol: 'hf_GC'
-			name:   '黄金 (COMEX)'
+			name: '黄金 (COMEX)'
 		},
 		CommodityDef{
 			symbol: 'hf_SI'
-			name:   '白银 (COMEX)'
+			name: '白银 (COMEX)'
 		},
 		CommodityDef{
 			symbol: 'hf_CL'
-			name:   'WTI 原油 (NYMEX)'
+			name: 'WTI 原油 (NYMEX)'
 		},
 		CommodityDef{
 			symbol: 'hf_OIL'
-			name:   '布伦特原油 (IPE)'
+			name: '布伦特原油 (IPE)'
 		},
 		CommodityDef{
 			symbol: 'hf_NG'
-			name:   '天然气 (NYMEX)'
+			name: '天然气 (NYMEX)'
 		},
 		CommodityDef{
 			symbol: 'hf_CAD'
-			name:   '铜 (LME)'
+			name: '铜 (LME)'
 		},
 		CommodityDef{
 			symbol: 'hf_XPT'
-			name:   '铂金 (NYMEX)'
+			name: '铂金 (NYMEX)'
 		},
 		CommodityDef{
 			symbol: 'hf_XPD'
-			name:   '钯金 (NYMEX)'
+			name: '钯金 (NYMEX)'
 		},
 	]
 }
@@ -848,8 +844,7 @@ pub fn fetch_commodity(dbconn &database.Database) !int {
 	}
 	dur := int(time.now().unix_milli() - start.unix_milli())
 	if n == 0 {
-		dbconn.log_fetch('commodity', 'failed', '全部 ${defs.len} 个商品品种抓取失败',
-			0, dur)
+		dbconn.log_fetch('commodity', 'failed', '全部 ${defs.len} 个商品品种抓取失败', 0, dur)
 		return error('commodity: 所有品种均抓取失败')
 	}
 	if n < defs.len {
@@ -888,15 +883,15 @@ fn parse_sina_futures_body(def CommodityDef, body string) models.MarketQuote {
 	chg := price - prev_close
 	vol := fields[9].i64()
 	return models.MarketQuote{
-		symbol:     def.symbol[3..].to_upper()
-		name:       def.name
-		market:     'commodity'
-		price:      price
+		symbol: def.symbol[3..].to_upper()
+		name: def.name
+		market: 'commodity'
+		price: price
 		prev_close: prev_close
-		change:     chg
+		change: chg
 		change_pct: if prev_close != 0 { chg / prev_close * 100.0 } else { 0.0 }
-		volume:     vol
-		source:     'sina-futures'
+		volume: vol
+		source: 'sina-futures'
 	}
 }
 
@@ -938,15 +933,15 @@ fn fetch_tencent(s models.MarketSymbol) ?models.MarketQuote {
 	change := price - prev_close
 	change_pct := if prev_close != 0 { (change / prev_close) * 100 } else { 0.0 }
 	return models.MarketQuote{
-		symbol:     s.symbol
-		name:       fields[1]
-		market:     s.market
-		price:      price
+		symbol: s.symbol
+		name: fields[1]
+		market: s.market
+		price: price
 		prev_close: prev_close
-		change:     change
+		change: change
 		change_pct: change_pct
-		volume:     volume
-		source:     'tencent'
+		volume: volume
+		source: 'tencent'
 	}
 }
 
@@ -972,15 +967,15 @@ fn fetch_sina(s models.MarketSymbol) ?models.MarketQuote {
 	change := price - prev_close
 	change_pct := if prev_close != 0 { (change / prev_close) * 100 } else { 0.0 }
 	return models.MarketQuote{
-		symbol:     s.symbol
-		name:       fields[0]
-		market:     s.market
-		price:      price
+		symbol: s.symbol
+		name: fields[0]
+		market: s.market
+		price: price
 		prev_close: prev_close
-		change:     change
+		change: change
 		change_pct: change_pct
-		volume:     volume
-		source:     'sina'
+		volume: volume
+		source: 'sina'
 	}
 }
 
@@ -1004,15 +999,15 @@ fn fetch_netease(s models.MarketSymbol) ?models.MarketQuote {
 	change := price - yest
 	change_pct := if yest != 0 { (change / yest) * 100 } else { 0.0 }
 	return models.MarketQuote{
-		symbol:     s.symbol
-		name:       json_field(data, 'name')
-		market:     s.market
-		price:      price
+		symbol: s.symbol
+		name: json_field(data, 'name')
+		market: s.market
+		price: price
 		prev_close: yest
-		change:     change
+		change: change
 		change_pct: change_pct
-		volume:     volume
-		source:     'netease'
+		volume: volume
+		source: 'netease'
 	}
 }
 

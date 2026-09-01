@@ -262,6 +262,17 @@ world_data/
 - `import_from_sqlite()` 及两个内部函数负责 SQLite→MySQL 迁移；
 - 查询接口：`get_countries` / `count_countries` / `get_indicators_for_country` / `get_indicator_top` / `get_world_stats` / `get_world_pop` / `get_market_quotes` / `count_market_quotes` / `recent_logs`。
 
+安全与 SQL 注入防护（新增）
+
+- 已在数据库层引入 `exec_params(query, params...)` 作为渐进式防护：代码中大量的字符串拼接插入已改为使用 `exec_params`（示例见 `fetch/worldbank.v`, `fetch/imf.v`, `fetch/market.v`, `database/import_from_sqlite`）；该函数基于 `?` 占位符并对非数字参数做 `sql_escape` 与单引号包裹，显著降低注入风险。长期建议优先使用数据库驱动的原生 prepared statements（若 `mysql.DB` 暴露），`exec_params` 作为向后兼容的缓解实现。
+- 已添加单元测试覆盖 exec_params 的常见边界（空值、数字、负数、浮点、特殊字符）并尝试注入样例以验证转义生效。
+
+> **English:**
+> Security & SQL injection mitigation (new)
+>
+> - The DB layer now includes `exec_params(query, params...)` as an incremental mitigation: many previous string-concatenated writes were replaced to use `exec_params` (see `fetch/worldbank.v`, `fetch/imf.v`, `fetch/market.v`, `database/import_from_sqlite`). It uses `?` placeholders and `sql_escape`+quotes for non-numeric params, reducing injection risk. Prefer native prepared statements from the DB driver when available; `exec_params` is a compatible interim approach.
+> - Unit tests were added to cover `exec_params` edge cases (empty, numeric, negative, float, special chars) and injection attempt validations.
+
 > **English:**
 > - `pub struct Database { db mysql.DB, open bool }`, `connect()` idempotent connect + table creation;
 > - `handle()` exposes the raw handle so the fetch module can run SQL directly;

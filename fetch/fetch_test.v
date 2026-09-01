@@ -56,7 +56,7 @@ fn test_json_rates_section_and_rate() {
 fn test_fetch_sina_futures_fields() {
 	def := CommodityDef{
 		symbol: 'hf_GC'
-		name:   '黄金 (COMEX)'
+		name: '黄金 (COMEX)'
 	}
 	body := 'var hq_str_hf_GC="4696.221,,4699.400,4699.900,4755.000,4670.500,14:01:25,4697.800,4710.100,12345,,2,2026-08-25,黄金,0";'
 	q := parse_sina_futures_body(def, body)

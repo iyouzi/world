@@ -7,7 +7,6 @@ import database
 // 接口参考 IMF_shows attachment：
 //   https://www.imf.org/external/datamapper/api/v1/NGDPD/CHN
 // 其中 NGDPD = GDP 现价美元, NGDPDPC = 人均 GDP。
-
 struct ImfDataset {
 	label string
 	unit  string
@@ -18,28 +17,28 @@ struct ImfDataset {
 fn imf_datasets() map[string]ImfDataset {
 	mut m := map[string]ImfDataset{}
 	m['NGDPD'] = ImfDataset{
-		label: 'GDP (current US$)'
-		unit:  'USD'
+		label: 'GDP (current US\$)'
+		unit: 'USD'
 	}
 	m['NGDPDPC'] = ImfDataset{
-		label: 'GDP per capita (current US$)'
-		unit:  'USD'
+		label: 'GDP per capita (current US\$)'
+		unit: 'USD'
 	}
 	m['NGDP_RPCH'] = ImfDataset{
 		label: 'Real GDP growth %'
-		unit:  '%'
+		unit: '%'
 	}
 	m['GGXWDG_NGDP'] = ImfDataset{
 		label: 'Gross debt % of GDP'
-		unit:  '%GDP'
+		unit: '%GDP'
 	}
 	m['PCPIPCH'] = ImfDataset{
 		label: 'Inflation %'
-		unit:  '%'
+		unit: '%'
 	}
 	m['LUR'] = ImfDataset{
 		label: 'Unemployment %'
-		unit:  '%'
+		unit: '%'
 	}
 	return m
 }
@@ -74,7 +73,7 @@ pub fn fetch_imf(dbconn &database.Database, limit int) !int {
 			for year_key, v in vals {
 				if v > 0 {
 					y_str := year_key.str()
-					m.exec("INSERT INTO indicators (source, country_iso, indicator, label, year, value, unit) VALUES ('imf', '${esc(iso2)}', '${esc(ds_code)}', '${esc(label)}', ${y_str}, ${v}, '${esc(unit)}') ON DUPLICATE KEY UPDATE value=VALUES(value), year=VALUES(year), updated_at=CURRENT_TIMESTAMP") or {}
+					dbconn.exec_params('INSERT INTO indicators (source, country_iso, indicator, label, year, value, unit) VALUES (?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE value=VALUES(value), year=VALUES(year), updated_at=CURRENT_TIMESTAMP', 'imf', iso2, ds_code, label, '${y_str}', '${v}', unit) or {}
 					total++
 				}
 			}
@@ -82,13 +81,11 @@ pub fn fetch_imf(dbconn &database.Database, limit int) !int {
 	}
 	dur := int(time.now().unix_milli() - start.unix_milli())
 	if total == 0 && req_fail > 0 {
-		dbconn.log_fetch('imf', 'failed',
-			'${req_fail} 个请求全部失败（网络不可用？）', 0, dur)
+		dbconn.log_fetch('imf', 'failed', '${req_fail} 个请求全部失败（网络不可用？）', 0, dur)
 		return error('imf: 所有 ${req_fail} 个请求均失败')
 	}
 	if req_fail > 0 {
-		dbconn.log_fetch('imf', 'partial',
-			'抓取 IMF ${total} 条记录（${req_fail} 个请求无数据）', total, dur)
+		dbconn.log_fetch('imf', 'partial', '抓取 IMF ${total} 条记录（${req_fail} 个请求无数据）', total, dur)
 	} else {
 		dbconn.log_fetch('imf', 'success', '抓取 IMF ${total} 条记录', total, dur)
 	}

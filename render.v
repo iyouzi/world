@@ -7,16 +7,14 @@ import strings
 // ============ 安全转义函数 ============
 // h：HTML 文本/属性值转义（& < > " '）
 fn h(s string) string {
-	return s.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;').replace("'",
-		'&#39;')
+	return s.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;').replace("'", '&#39;')
 }
 
 // js_str：JS 字符串字面量内容转义
 fn js_str(s string) string {
-	mut out := s.replace('\\', '\\\\').replace("'", "\\'").replace('"', '\\"').replace('\n', '\\n').replace('\r',
-		'\\r').replace('\t', '\\t').replace('\x00', '\\u0000')
+	mut out := s.replace('\\', '\\\\').replace("'", "\\'").replace('"', '\\"').replace('\n', '\\n').replace('\r', '\\r').replace('\t', '\\t').replace('\0', '\\u0000')
 	out = out.replace('</', '<\\/')
-	out = out.replace('\u2028', '\\u2028').replace('\u2029', '\\u2029')
+	out = out.replace(' ', '\\u2028').replace(' ', '\\u2029')
 	return out
 }
 
@@ -64,69 +62,17 @@ fn page_shell(title string, ws models.WorldStats, sidebar string, main string, l
 		locale.t(lang, 'wait_first_fetch')
 	}
 	html_lang := if lang == .en { 'en' } else { 'zh-CN' }
-	return '
-<!DOCTYPE html>
-<html lang="${html_lang}">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#0f1420">
-<meta name="description" content="${h(locale.t(lang,
-		'meta_desc'))}">
-<title>${h(title)} | WorldApp</title>
-<link rel="stylesheet" href="/static/css/style.css">
-<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-<script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-	<script src="/static/js/app.js"></script>
-	<script>window.LANG = "${lang.str()}"; window.I18N = ${locale.json_bundle()};</script>
-</head>
-<body>
-<header class="topbar">
-  <div class="brand">🌐 World<span>App</span></div>
-  <div class="topstats">
-    <div class="ts"><span class="tsv">${models.format_large(ws.total_gdp)}</span><span class="tsl">${locale.t(lang,
-		'top_world_gdp')}</span></div>
-    <div class="ts"><span class="tsv">${ws.total_countries}</span><span class="tsl">${locale.t(lang,
-		'top_countries')}</span></div>
-    <div class="ts"><span class="tsv">${fmt2(ws.avg_life)}</span><span class="tsl">${locale.t(lang,
-		'top_life')}</span></div>
-    <div class="ts"><span class="tsv" id="fetchStatus" title="${h(last_upd)}">${locale.t(lang,
-		'status_ready')}</span><span class="tsl">${locale.t(lang, 'top_status')}</span></div>
-  </div>
-  <div class="top-actions">
-    <span class="clock-display" id="clockDisplay"></span>
-    <span class="lang-switch">
-      <a href="?lang=zh" class="${if lang == .zh {
+	return '\n<!DOCTYPE html>\n<html lang="${html_lang}">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">\n<meta name="theme-color" content="#0f1420">\n<meta name="description" content="${h(locale.t(lang, 'meta_desc'))}">\n<title>${h(title)} | WorldApp</title>\n<link rel="stylesheet" href="/static/css/style.css">\n<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>\n<script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>\n\t<script src="/static/js/app.js"></script>\n\t<script>window.LANG = "${lang.str()}"; window.I18N = ${locale.json_bundle()};</script>\n</head>\n<body>\n<header class="topbar">\n  <div class="brand">🌐 World<span>App</span></div>\n  <div class="topstats">\n    <div class="ts"><span class="tsv">${models.format_large(ws.total_gdp)}</span><span class="tsl">${locale.t(lang, 'top_world_gdp')}</span></div>\n    <div class="ts"><span class="tsv">${ws.total_countries}</span><span class="tsl">${locale.t(lang, 'top_countries')}</span></div>\n    <div class="ts"><span class="tsv">${fmt2(ws.avg_life)}</span><span class="tsl">${locale.t(lang, 'top_life')}</span></div>\n    <div class="ts"><span class="tsv" id="fetchStatus" title="${h(last_upd)}">${locale.t(lang, 'status_ready')}</span><span class="tsl">${locale.t(lang, 'top_status')}</span></div>\n  </div>\n  <div class="top-actions">\n    <span class="clock-display" id="clockDisplay"></span>\n    <span class="lang-switch">\n      <a href="?lang=zh" class="${if lang == .zh {
 		'on'
 	} else {
 		''
-	}}">${locale.t(lang, 'lang_zh')}</a>
-      <a href="?lang=en" class="${if lang == .en {
+	}}">${locale.t(lang, 'lang_zh')}</a>\n      <a href="?lang=en" class="${if lang == .en {
 		'on'
 	} else {
 		''
-	}}">${locale.t(lang, 'lang_en')}</a>
-    </span>
-    <button class="theme-toggle" id="themeToggle" title="${h(locale.t(lang,
-		'theme_toggle'))}">☀️</button>
-  </div>
-</header>
-<div class="mobile-bar">
-  <span style="font-size:13px;color:var(--text-muted)">${h(locale.tf(lang,
-		'mobile_bar', {
+	}}">${locale.t(lang, 'lang_en')}</a>\n    </span>\n    <button class="theme-toggle" id="themeToggle" title="${h(locale.t(lang, 'theme_toggle'))}">☀️</button>\n  </div>\n</header>\n<div class="mobile-bar">\n  <span style="font-size:13px;color:var(--text-muted)">${h(locale.tf(lang, 'mobile_bar', {
 		'n': ws.total_countries.str()
-	}))}</span>
-  <button id="sidebarToggle">☰ ${h(locale.t(lang, 'menu'))}</button>
-</div>
-<div id="sidebarOverlay"></div>
-<div class="layout">
-  <main class="content">
-    ${main}
-  </main>
-  ${sidebar}
-</div>
-</body>
-</html>'
+	}))}</span>\n  <button id="sidebarToggle">☰ ${h(locale.t(lang, 'menu'))}</button>\n</div>\n<div id="sidebarOverlay"></div>\n<div class="layout">\n  <main class="content">\n    ${main}\n  </main>\n  ${sidebar}\n</div>\n</body>\n</html>'
 }
 
 // 右侧栏：分类目录 + 搜索框
@@ -135,28 +81,16 @@ fn sidebar_html(active string, search string, cats []models.Category, lang local
 	for c in cats {
 		groups[c.source] << c
 	}
-	mut html := '<aside class="sidebar"><div class="side-search">
-		<input type="text" id="sideSearch" placeholder="${h(locale.t(lang,
-		'search_placeholder'))}" value="${h(search)}">
-		<button onclick="doSideSearch()">🔍</button>
-	</div><nav class="side-nav">'
+	mut html := '<aside class="sidebar"><div class="side-search">\n\t\t<input type="text" id="sideSearch" placeholder="${h(locale.t(lang, 'search_placeholder'))}" value="${h(search)}">\n\t\t<button onclick="doSideSearch()">🔍</button>\n\t</div><nav class="side-nav">'
 	for src, list in groups {
-		html += '<div class="side-group"><div class="side-group-title">${h(locale.t(lang, 'src_' +
-			src))}</div><ul>'
+		html += '<div class="side-group"><div class="side-group-title">${h(locale.t(lang, 'src_' + src))}</div><ul>'
 		for c in list {
 			cls := if c.id == active { ' active' } else { '' }
-			html += '<li><a class="side-link${cls}" href="/category/${a(c.id)}"><span class="ico">${c.icon}</span>${h(locale.t(lang,
-
-				'cat_' + c.id))}</a></li>'
+			html += '<li><a class="side-link${cls}" href="/category/${a(c.id)}"><span class="ico">${c.icon}</span>${h(locale.t(lang, 'cat_' + c.id))}</a></li>'
 		}
 		html += '</ul></div>'
 	}
-	html += '</nav>
-	<div class="side-foot">
-		<button class="refresh-btn" onclick="triggerRefresh()">🔄 ${h(locale.t(lang,
-		'refresh_btn'))}</button>
-	</div>
-	</aside>'
+	html += '</nav>\n\t<div class="side-foot">\n\t\t<button class="refresh-btn" onclick="triggerRefresh()">🔄 ${h(locale.t(lang, 'refresh_btn'))}</button>\n\t</div>\n\t</aside>'
 	return html
 }
 
@@ -172,8 +106,7 @@ fn main_content_html(active string, ws models.WorldStats, app &App, lang locale.
 		'imf_gdp', 'imf_wEO' {
 			return imf_html(active, app, lang)
 		}
-		'owid_population', 'owid_health', 'owid_energy', 'owid_economy', 'owid_education',
-		'owid_food' {
+		'owid_population', 'owid_health', 'owid_energy', 'owid_economy', 'owid_education', 'owid_food' {
 			return owid_html(active, app, lang)
 		}
 		'mk_cn' {
@@ -226,67 +159,47 @@ fn overview_html(ws models.WorldStats, app &App, lang locale.Lang) string {
 	// Build GDP table rows
 	mut rows := ''
 	world_val := ws.total_gdp
-	rows += '<tr style="background:var(--brand-soft);font-weight:700">' +
-		'<td style="color:var(--brand)"> </td>' +
-		'<td class="num-cell">${models.format_large(world_val)}</td>' +
-		'<td style="font-size:12px;color:var(--text-muted)"></td>' + '</tr>'
+	rows += '<tr style="background:var(--brand-soft);font-weight:700">' + '<td style="color:var(--brand)"> </td>' + '<td class="num-cell">${models.format_large(world_val)}</td>' + '<td style="font-size:12px;color:var(--text-muted)"></td>' + '</tr>'
 	for i, item in top {
 		rank := i + 2
 		pct := if top.len > 0 && top[0].value > 0 { item.value / top[0].value * 100.0 } else { 0.0 }
 		mut pct_safe := digits_only(pct.str().split('.')[0], '0123456789')
-		if pct_safe == '' { pct_safe = '0' }
-		rows += '<tr>' + '<td style="font-weight:600;color:var(--text-muted)">#' + rank.str() +
-			'</td>' + '<td>' + h(item.name) + ' <a href="/country/' + a(item.iso2) +
-			'" style="font-size:11px;color:var(--text-muted);font-weight:400">' + h(item.iso2) +
-			'</a></td>' + '<td class="num-cell">${models.format_large(item.value)}</td>' +
-			'<td class="bar-cell"><div class="bar-wrap"><div class="bar" style="width:' + pct_safe +
-			'%"></div></div></td>' + '<td style="font-size:12px;color:var(--text-muted)">' +
-			item.year.str() + '</td>' + '</tr>'
+		if pct_safe == '' {
+			pct_safe = '0'
+		}
+		rows += '<tr>' + '<td style="font-weight:600;color:var(--text-muted)">#' + rank.str() + '</td>' + '<td>' + h(item.name) + ' <a href="/country/' + a(item.iso2) + '" style="font-size:11px;color:var(--text-muted);font-weight:400">' + h(item.iso2) + '</a></td>' + '<td class="num-cell">${models.format_large(item.value)}</td>' + '<td class="bar-cell"><div class="bar-wrap"><div class="bar" style="width:' + pct_safe + '%"></div></div></td>' + '<td style="font-size:12px;color:var(--text-muted)">' + item.year.str() + '</td>' + '</tr>'
 	}
 
 	// Build WLD cards panel
 	mut wld_cards := ''
 	if ws.gdp_per_capita > 0 {
-		wld_cards += '<div class="card"><div class="cv">' + fmt2(ws.gdp_per_capita) +
-			'</div><div class="cl">' + h(locale.t(lang, 'wld_gdp_pc')) + '</div></div>'
+		wld_cards += '<div class="card"><div class="cv">' + fmt2(ws.gdp_per_capita) + '</div><div class="cl">' + h(locale.t(lang, 'wld_gdp_pc')) + '</div></div>'
 	}
 	if ws.inflation > 0 {
 		color := if ws.inflation > 5.0 { 'var(--warn)' } else { 'var(--brand-2)' }
-		wld_cards += '<div class="card"><div class="cv" style="color:' + color + '">' +
-			fmt2(ws.inflation) + '%</div><div class="cl">' + h(locale.t(lang, 'wld_cpi')) +
-			'</div></div>'
+		wld_cards += '<div class="card"><div class="cv" style="color:' + color + '">' + fmt2(ws.inflation) + '%</div><div class="cl">' + h(locale.t(lang, 'wld_cpi')) + '</div></div>'
 	}
 	if ws.unemployment > 0 {
 		color := if ws.unemployment > 6.0 { 'var(--warn)' } else { 'var(--brand-2)' }
-		wld_cards += '<div class="card"><div class="cv" style="color:' + color + '">' +
-			fmt2(ws.unemployment) + '%</div><div class="cl">' + h(locale.t(lang, 'wld_unemp')) +
-			'</div></div>'
+		wld_cards += '<div class="card"><div class="cv" style="color:' + color + '">' + fmt2(ws.unemployment) + '%</div><div class="cl">' + h(locale.t(lang, 'wld_unemp')) + '</div></div>'
 	}
 	if ws.internet_users > 0 {
-		wld_cards += '<div class="card"><div class="cv">' + fmt2(ws.internet_users) +
-			'%</div><div class="cl">' + h(locale.t(lang, 'wld_inet')) + '</div></div>'
+		wld_cards += '<div class="card"><div class="cv">' + fmt2(ws.internet_users) + '%</div><div class="cl">' + h(locale.t(lang, 'wld_inet')) + '</div></div>'
 	}
 	if ws.education_spend > 0 {
-		wld_cards += '<div class="card"><div class="cv">' + fmt2(ws.education_spend) +
-			'%</div><div class="cl">' + h(locale.t(lang, 'wld_edu')) + '</div></div>'
+		wld_cards += '<div class="card"><div class="cv">' + fmt2(ws.education_spend) + '%</div><div class="cl">' + h(locale.t(lang, 'wld_edu')) + '</div></div>'
 	}
 	if ws.health_spend > 0 {
-		wld_cards += '<div class="card"><div class="cv">' + fmt2(ws.health_spend) +
-			'%</div><div class="cl">' + h(locale.t(lang, 'wld_health')) + '</div></div>'
+		wld_cards += '<div class="card"><div class="cv">' + fmt2(ws.health_spend) + '%</div><div class="cl">' + h(locale.t(lang, 'wld_health')) + '</div></div>'
 	}
 	if ws.energy_use > 0 {
-		wld_cards += '<div class="card"><div class="cv">' + fmt2(ws.energy_use) +
-			'</div><div class="cl">' + h(locale.t(lang, 'wld_energy')) + '</div></div>'
+		wld_cards += '<div class="card"><div class="cv">' + fmt2(ws.energy_use) + '</div><div class="cl">' + h(locale.t(lang, 'wld_energy')) + '</div></div>'
 	}
 	wld_count := wld_cards.split('card').len - 1
 	wld_panel := if wld_count > 0 {
-		'<div class="panel">' + '<div class="panel-header"><h2 style="margin:0">' +
-			h(locale.t(lang, 'wld_core')) + '</h2><span class="panel-badge">' +
-			h(locale.tf(lang, 'wld_items', {
+		'<div class="panel">' + '<div class="panel-header"><h2 style="margin:0">' + h(locale.t(lang, 'wld_core')) + '</h2><span class="panel-badge">' + h(locale.tf(lang, 'wld_items', {
 			'n': wld_count.str()
-		})) + '</span></div>' +
-			'<div class="cards" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin:0">' +
-			wld_cards + '</div>' + '</div>'
+		})) + '</span></div>' + '<div class="cards" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin:0">' + wld_cards + '</div>' + '</div>'
 	} else {
 		''
 	}
@@ -294,96 +207,55 @@ fn overview_html(ws models.WorldStats, app &App, lang locale.Lang) string {
 	// Build page HTML
 	mut sb := strings.new_builder(4096)
 	sb.write_string('<h1> </h1>')
-	sb.write_string('<p class="sub"><b>' + locale.t(lang, 'world_bank') + '</b> · <b>' +
-		locale.t(lang, 'imf') + '</b> · ' + h(locale.t(lang, 'overview_sub')) + ' · ' +
-		h(last_upd) + '</p>')
+	sb.write_string('<p class="sub"><b>' + locale.t(lang, 'world_bank') + '</b> · <b>' + locale.t(lang, 'imf') + '</b> · ' + h(locale.t(lang, 'overview_sub')) + ' · ' + h(last_upd) + '</p>')
 	sb.write_string('<div class="cards">')
-	sb.write_string(
-		'<div class="card"><div class="cv">${models.format_large(ws.total_gdp)}</div><div class="cl">' +
-		h(locale.t(lang, 'card_world_gdp')) + '</div></div>')
-	sb.write_string(
-		'<div class="card"><div class="cv">${ws.total_countries}</div><div class="cl">' +
-		h(locale.t(lang, 'card_countries')) + '</div></div>')
-	sb.write_string(
-		'<div class="card"><div class="cv">${models.format_large(ws.total_population)}</div><div class="cl">' +
-		h(locale.t(lang, 'card_population')) + '</div></div>')
-	sb.write_string(
-		'<div class="card"><div class="cv">${fmt2(ws.avg_life)}</div><div class="cl">' +
-		h(locale.t(lang, 'card_avg_life')) + '</div></div>')
+	sb.write_string('<div class="card"><div class="cv">${models.format_large(ws.total_gdp)}</div><div class="cl">' + h(locale.t(lang, 'card_world_gdp')) + '</div></div>')
+	sb.write_string('<div class="card"><div class="cv">${ws.total_countries}</div><div class="cl">' + h(locale.t(lang, 'card_countries')) + '</div></div>')
+	sb.write_string('<div class="card"><div class="cv">${models.format_large(ws.total_population)}</div><div class="cl">' + h(locale.t(lang, 'card_population')) + '</div></div>')
+	sb.write_string('<div class="card"><div class="cv">${fmt2(ws.avg_life)}</div><div class="cl">' + h(locale.t(lang, 'card_avg_life')) + '</div></div>')
 	sb.write_string('</div>')
 
 	// G20+ 主要国家表格
 	home_countries := app.db.get_home_countries() or { []models.HomeCountry{} }
 	if home_countries.len > 0 {
 		sb.write_string('<div class="panel">')
-		sb.write_string('<div class="panel-header"><h2 style="margin:0">' +
-			h(locale.t(lang, 'home_g20_table')) + '</h2><span class="panel-badge">' +
-			h(locale.tf(lang, 'wld_items', { 'n': home_countries.len.str() })) + '</span></div>')
+		sb.write_string('<div class="panel-header"><h2 style="margin:0">' + h(locale.t(lang, 'home_g20_table')) + '</h2><span class="panel-badge">' + h(locale.tf(lang, 'wld_items', {
+			'n': home_countries.len.str()
+		})) + '</span></div>')
 		sb.write_string('<div class="table-wrap" style="overflow-x:auto">')
 		sb.write_string('<table class="data-table">')
-		sb.write_string('<thead><tr><th>' + locale.t(lang, 'rank') + '</th><th>' +
-			locale.t(lang, 'country') + '</th>' +
-			'<th class="num-cell">' + locale.t(lang, 'home_population') + '</th>' +
-			'<th class="num-cell">' + locale.t(lang, 'home_area') + '</th>' +
-			'<th class="num-cell">' + locale.t(lang, 'home_gdp') + '</th>' +
-			'<th class="num-cell">' + locale.t(lang, 'home_gdp_ppp') + '</th>' +
-			'<th class="num-cell">' + locale.t(lang, 'home_gdppc') + '</th>' +
-			'<th class="num-cell">' + locale.t(lang, 'home_gdppc_ppp') + '</th>' +
-			'<th class="num-cell">' + locale.t(lang, 'home_ppp_per_sqkm') + '</th>' +
-			'<th>' + locale.t(lang, 'home_note') + '</th>' +
-			'</tr></thead>')
+		sb.write_string('<thead><tr><th>' + locale.t(lang, 'rank') + '</th><th>' + locale.t(lang, 'country') + '</th>' + '<th class="num-cell">' + locale.t(lang, 'home_population') + '</th>' + '<th class="num-cell">' + locale.t(lang, 'home_area') + '</th>' + '<th class="num-cell">' + locale.t(lang, 'home_gdp') + '</th>' + '<th class="num-cell">' + locale.t(lang, 'home_gdp_ppp') + '</th>' + '<th class="num-cell">' + locale.t(lang, 'home_gdppc') + '</th>' + '<th class="num-cell">' + locale.t(lang, 'home_gdppc_ppp') + '</th>' + '<th class="num-cell">' + locale.t(lang, 'home_ppp_per_sqkm') + '</th>' + '<th>' + locale.t(lang, 'home_note') + '</th>' + '</tr></thead>')
 		sb.write_string('<tbody>')
 		for i, c in home_countries {
 			rank := i + 1
 			note := if c.note != '' { h(c.note) } else { '-' }
-			sb.write_string('<tr>' +
-				'<td style="font-weight:600;color:var(--text-muted)">' + rank.str() + '</td>' +
-				'<td>' + h(c.name) + ' <a href="/country/' + a(c.iso2) +
-				'" style="font-size:11px;color:var(--text-muted);font-weight:400">' + h(c.iso2) + '</a></td>' +
-				'<td class="num-cell">' + models.format_large(c.population) + '</td>' +
-				'<td class="num-cell">' + models.format_large(c.land_area) + '</td>' +
-				'<td class="num-cell">' + models.format_large(c.gdp) + '</td>' +
-				'<td class="num-cell">' + models.format_large(c.gdp_ppp) + '</td>' +
-				'<td class="num-cell">' + models.format_large(c.gdp_per_capita) + '</td>' +
-				'<td class="num-cell">' + models.format_large(c.gdp_ppc_ppp) + '</td>' +
-				'<td class="num-cell">' + models.format_large(c.ppp_per_sqkm) + '</td>' +
-				'<td style="font-size:12px;color:var(--text-muted)">' + note + '</td>' +
-				'</tr>')
+			sb.write_string('<tr>' + '<td style="font-weight:600;color:var(--text-muted)">' + rank.str() + '</td>' + '<td>' + h(c.name) + ' <a href="/country/' + a(c.iso2) + '" style="font-size:11px;color:var(--text-muted);font-weight:400">' + h(c.iso2) + '</a></td>' + '<td class="num-cell">' + models.format_large(c.population) + '</td>' + '<td class="num-cell">' + models.format_large(c.land_area) + '</td>' + '<td class="num-cell">' + models.format_large(c.gdp) + '</td>' + '<td class="num-cell">' + models.format_large(c.gdp_ppp) + '</td>' + '<td class="num-cell">' + models.format_large(c.gdp_per_capita) + '</td>' + '<td class="num-cell">' + models.format_large(c.gdp_ppc_ppp) + '</td>' + '<td class="num-cell">' + models.format_large(c.ppp_per_sqkm) + '</td>' + '<td style="font-size:12px;color:var(--text-muted)">' + note + '</td>' + '</tr>')
 		}
 		sb.write_string('</tbody></table>')
 		sb.write_string('</div></div>')
 	}
 
 	sb.write_string('<div class="panel">')
-	sb.write_string('<div class="panel-header"><h2 style="margin:0">' +
-		h(locale.t(lang, 'gdp_top20')) + '</h2><span class="panel-badge"></span></div>')
+	sb.write_string('<div class="panel-header"><h2 style="margin:0">' + h(locale.t(lang, 'gdp_top20')) + '</h2><span class="panel-badge"></span></div>')
 	sb.write_string('<div class="table-wrap">')
 	sb.write_string('<table class="data-table">')
-	sb.write_string('<thead><tr><th>' + locale.t(lang, 'rank') + '</th><th>' +
-		locale.t(lang, 'country') + '</th><th class="num-cell">' + locale.t(lang, 'gdp_usd') +
-		'</th><th class="bar-cell"></th><th>' + locale.t(lang, 'year') + '</th></tr></thead>')
+	sb.write_string('<thead><tr><th>' + locale.t(lang, 'rank') + '</th><th>' + locale.t(lang, 'country') + '</th><th class="num-cell">' + locale.t(lang, 'gdp_usd') + '</th><th class="bar-cell"></th><th>' + locale.t(lang, 'year') + '</th></tr></thead>')
 	sb.write_string('<tbody>' + rows + '</tbody>')
 	sb.write_string('</table>')
 	sb.write_string('</div>')
 	sb.write_string('</div>')
 	sb.write_string(wld_panel)
 	sb.write_string('<div class="panel">')
-	sb.write_string('<div class="panel-header"><h2 style="margin:0">' +
-		h(locale.t(lang, 'imf_top20')) + '</h2><span class="panel-badge">' + locale.t(lang, 'api') +
-		'</span></div>')
+	sb.write_string('<div class="panel-header"><h2 style="margin:0">' + h(locale.t(lang, 'imf_top20')) + '</h2><span class="panel-badge">' + locale.t(lang, 'api') + '</span></div>')
 	sb.write_string('<canvas id="imfChart" height="140"></canvas>')
 	sb.write_string('</div>')
 	sb.write_string('<div class="panel" id="gdpChartPanel" style="display:none">')
-	sb.write_string('<div class="panel-header"><h2 style="margin:0">' +
-		h(locale.t(lang, 'gdp_chart')) + '</h2><span class="panel-badge">' +
-		locale.t(lang, 'chartjs') + '</span></div>')
+	sb.write_string('<div class="panel-header"><h2 style="margin:0">' + h(locale.t(lang, 'gdp_chart')) + '</h2><span class="panel-badge">' + locale.t(lang, 'chartjs') + '</span></div>')
 	sb.write_string('<canvas id="gdpChart" height="180"></canvas>')
 	sb.write_string('</div>')
 	sb.write_string('<script>')
 	sb.write_string('window.addEventListener("DOMContentLoaded", () => {')
-	sb.write_string(
-		'  if (window.renderBarChart) window.renderBarChart("gdpChart", ' + labels + ', ' + values + ', "' + js_str(locale.t(lang, 'gdp_usd')) +
-		'");')
+	sb.write_string('  if (window.renderBarChart) window.renderBarChart("gdpChart", ' + labels + ', ' + values + ', "' + js_str(locale.t(lang, 'gdp_usd')) + '");')
 	sb.write_string('  document.getElementById("gdpChartPanel").style.display = "block";')
 	sb.write_string('  if (window.renderImfTop) window.renderImfTop("imfChart");')
 	sb.write_string('});')
@@ -425,17 +297,8 @@ fn wb_html(cat string, app &App, lang locale.Lang) string {
 	}
 	top := app.db.get_country_indicator_top('worldbank', indicator, 15) or { []models.CountryGdp{} }
 	if top.len == 0 {
-		return '
-		<h1>${icon} ${h(title)}</h1>
-		<p class="sub">' + locale.t(lang, 'data_source') +
-			'：World Bank · ' + locale.t(lang, 'indicator_code') +
-			'：<code>${h(indicator)}</code> · ' + locale.t(lang, 'unit') +
-			'：${h(unit)}</p>
-		<div class="empty-state"><div class="emoji">📭</div>
-		<p>' +
-			locale.t(lang, 'empty_data') + '</p>
-		<p style="margin-top:6px;font-size:12px">' +
-			locale.t(lang, 'retry_hint') + '</p>
+		return '\n\t\t<h1>${icon} ${h(title)}</h1>\n\t\t<p class="sub">' + locale.t(lang, 'data_source') + '：World Bank · ' + locale.t(lang, 'indicator_code') + '：<code>${h(indicator)}</code> · ' + locale.t(lang, 'unit') + '：${h(unit)}</p>\n\t\t<div class="empty-state"><div class="emoji">📭</div>\n\t\t<p>' + locale.t(lang, 'empty_data') + '</p>
+		<p style="margin-top:6px;font-size:12px">' + locale.t(lang, 'retry_hint') + '</p>
 		</div>'
 	}
 	mut rows := ''
@@ -443,43 +306,21 @@ fn wb_html(cat string, app &App, lang locale.Lang) string {
 		rank := (i + 1)
 		pct := if top.len > 0 && top[0].value > 0 { item.value / top[0].value * 100.0 } else { 0.0 }
 		mut pct_safe := digits_only(pct.str().split('.')[0], '0123456789')
-		if pct_safe == '' { pct_safe = '0' }
-		rows += '<tr>
-			<td style="font-weight:600;color:var(--text-muted)">#${rank}</td>
-			<td>${h(item.name)} <a href="/country/${a(item.iso2)}" style="font-size:11px;color:var(--text-muted);font-weight:400">${h(item.iso2)}</a></td>
-			<td class="num-cell" style="font-weight:600">${models.format_large(item.value)}</td>
-			<td style="font-size:12px;color:var(--text-muted)">${item.year}${locale.t(lang,
-			'year_unit')}</td>
-			<td class="bar-cell"><div class="bar-wrap"><div class="bar" style="width:${pct_safe}%"></div></div>
-			<div style="font-size:11px;color:var(--text-muted);margin-top:4px">${h(pct_safe)}% of #1</div></td>
-		</tr>'
+		if pct_safe == '' {
+			pct_safe = '0'
+		}
+		rows += '<tr>\n\t\t\t<td style="font-weight:600;color:var(--text-muted)">#${rank}</td>\n\t\t\t<td>${h(item.name)} <a href="/country/${a(item.iso2)}" style="font-size:11px;color:var(--text-muted);font-weight:400">${h(item.iso2)}</a></td>\n\t\t\t<td class="num-cell" style="font-weight:600">${models.format_large(item.value)}</td>\n\t\t\t<td style="font-size:12px;color:var(--text-muted)">${item.year}${locale.t(lang, 'year_unit')}</td>\n\t\t\t<td class="bar-cell"><div class="bar-wrap"><div class="bar" style="width:${pct_safe}%"></div></div>\n\t\t\t<div style="font-size:11px;color:var(--text-muted);margin-top:4px">${h(pct_safe)}% of #1</div></td>\n\t\t</tr>'
 	}
-	return '
-	<h1>${icon} ${h(title)}</h1>
-	<p class="sub">' + locale.t(lang, 'data_source') +
-		'：World Bank · ' + locale.t(lang, 'indicator_code') +
-		'：<code>${h(indicator)}</code> · ' + locale.t(lang, 'unit') + '：${h(unit)} · ' +
-		h(locale.tf(lang, 'wb_sub_countries', {
+	return '\n\t<h1>${icon} ${h(title)}</h1>\n\t<p class="sub">' + locale.t(lang, 'data_source') + '：World Bank · ' + locale.t(lang, 'indicator_code') + '：<code>${h(indicator)}</code> · ' + locale.t(lang, 'unit') + '：${h(unit)} · ' + h(locale.tf(lang, 'wb_sub_countries', {
 		'n': top.len.str()
-	})) +
-		'</p>
+	})) + '</p>
 	<div class="panel" style="padding:0;overflow:hidden">
-	<div class="panel-header" style="padding:18px 20px 0"><h2 style="margin:0">' +
-		locale.t(lang, 'ranking') + '</h2><span class="panel-badge">' +
-		h(locale.tf(lang, 'top_n', {
+	<div class="panel-header" style="padding:18px 20px 0"><h2 style="margin:0">' + locale.t(lang, 'ranking') + '</h2><span class="panel-badge">' + h(locale.tf(lang, 'top_n', {
 		'n': top.len.str()
-	})) +
-		'</span></div>
+	})) + '</span></div>
 	<div class="table-wrap" style="padding:0 4px 4px">
 	<table class="data-table" style="border-radius:0">
-		<thead><tr><th>#</th><th>' +
-		locale.t(lang, 'country') + '</th><th class="num-cell">' + locale.t(lang, 'value') +
-		'</th><th>' + locale.t(lang, 'year') + '</th><th>' + locale.t(lang, 'rel_share') +
-		'</th></tr></thead>
-		<tbody>${rows}</tbody>
-	</table>
-	</div>
-	</div>'
+		<thead><tr><th>#</th><th>' + locale.t(lang, 'country') + '</th><th class="num-cell">' + locale.t(lang, 'value') + '</th><th>' + locale.t(lang, 'year') + '</th><th>' + locale.t(lang, 'rel_share') + '</th></tr></thead>\n\t\t<tbody>${rows}</tbody>\n\t</table>\n\t</div>\n\t</div>'
 }
 
 // IMF 分类内容：imf_gdp -> NGDPD（GDP 现价美元）；imf_wEO -> NGDP_RPCH（实际增长预测）
@@ -498,16 +339,10 @@ fn imf_html(cat string, app &App, lang locale.Lang) string {
 	}
 	top := app.db.get_indicator_top('imf', code, 15) or { []models.Indicator{} }
 	if top.len == 0 {
-		return '
-		<h1>${icon} ${h(title)}</h1>
-		<p class="sub">' + locale.t(lang, 'data_source') +
-			'：IMF Data Mapper · <code>${h(code)}</code> · ' + note +
-			'</p>
+		return '\n\t\t<h1>${icon} ${h(title)}</h1>\n\t\t<p class="sub">' + locale.t(lang, 'data_source') + '：IMF Data Mapper · <code>${h(code)}</code> · ' + note + '</p>
 		<div class="empty-state"><div class="emoji">📭</div>
-		<p>' +
-			locale.t(lang, 'empty_imf') + '</p>
-		<p style="margin-top:6px;font-size:12px">' +
-			locale.t(lang, 'retry_hint') + '</p>
+		<p>' + locale.t(lang, 'empty_imf') + '</p>
+		<p style="margin-top:6px;font-size:12px">' + locale.t(lang, 'retry_hint') + '</p>
 		</div>'
 	}
 	upd := top[0].updated_at
@@ -517,14 +352,17 @@ fn imf_html(cat string, app &App, lang locale.Lang) string {
 		mut pct := 0.0
 		if top.len > 0 && top[0].value != 0 {
 			if code == 'NGDP_RPCH' {
-				pct = ((ind.value - top[top.len - 1].value) / (top[0].value - top[top.len -
-					1].value + 0.0001) * 100.0)
+				pct = ((ind.value - top[top.len - 1].value) / (top[0].value - top[top.len - 1].value + 0.0001) * 100.0)
 			} else {
 				pct = ind.value / top[0].value * 100.0
 			}
 		}
-		if pct < 0 { pct = 0 }
-		if pct > 100 { pct = 100 }
+		if pct < 0 {
+			pct = 0
+		}
+		if pct > 100 {
+			pct = 100
+		}
 		pct_safe := digits_only(pct.str().split('.')[0], '0123456789')
 		pct_str := if pct_safe == '' { '0' } else { pct_safe }
 		mut val_txt := ''
@@ -542,40 +380,19 @@ fn imf_html(cat string, app &App, lang locale.Lang) string {
 			val_txt = fmt2(ind.value)
 		}
 		bar_cls := if code == 'NGDP_RPCH' { 'bar alt' } else { 'bar' }
-		rows += '<tr>
-			<td style="font-weight:600;color:var(--text-muted)">#${rank}</td>
-			<td><a href="/country/${a(ind.country_iso)}">${h(ind.country_iso)}</a></td>
-			<td style="font-size:12px;color:var(--text-muted)">${h(ind.year.str())}</td>
-			<td class="num-cell" style="font-weight:600">${val_txt}</td>
-			<td class="bar-cell"><div class="bar-wrap"><div class="${bar_cls}" style="width:${pct_str}%"></div></div></td>
-		</tr>'
+		rows += '<tr>\n\t\t\t<td style="font-weight:600;color:var(--text-muted)">#${rank}</td>\n\t\t\t<td><a href="/country/${a(ind.country_iso)}">${h(ind.country_iso)}</a></td>\n\t\t\t<td style="font-size:12px;color:var(--text-muted)">${h(ind.year.str())}</td>\n\t\t\t<td class="num-cell" style="font-weight:600">${val_txt}</td>\n\t\t\t<td class="bar-cell"><div class="bar-wrap"><div class="${bar_cls}" style="width:${pct_str}%"></div></div></td>\n\t\t</tr>'
 	}
-	return '
-	<h1>${icon} ${h(title)}</h1>
-	<p class="sub">' + locale.t(lang, 'data_source') +
-		'：IMF Data Mapper · <code>' + h(code) + '</code> · ' + note + ' · ' +
-		h(locale.tf(lang, 'imf_updated', {
+	return '\n\t<h1>${icon} ${h(title)}</h1>\n\t<p class="sub">' + locale.t(lang, 'data_source') + '：IMF Data Mapper · <code>' + h(code) + '</code> · ' + note + ' · ' + h(locale.tf(lang, 'imf_updated', {
 		'upd': upd
 		'n':   top.len.str()
-	})) +
-		'</p>
+	})) + '</p>
 	<div class="panel" style="padding:0;overflow:hidden">
-	<div class="panel-header" style="padding:18px 20px 0"><h2 style="margin:0">' +
-		locale.t(lang, 'ranking') + '</h2><span class="panel-badge">' +
-		h(locale.tf(lang, 'top_n', {
+	<div class="panel-header" style="padding:18px 20px 0"><h2 style="margin:0">' + locale.t(lang, 'ranking') + '</h2><span class="panel-badge">' + h(locale.tf(lang, 'top_n', {
 		'n': top.len.str()
-	})) +
-		'</span></div>
+	})) + '</span></div>
 	<div class="table-wrap" style="padding:0 4px 4px">
 	<table class="data-table" style="border-radius:0">
-		<thead><tr><th>#</th><th>' +
-		locale.t(lang, 'country_code') + '</th><th>' + locale.t(lang, 'year') + '</th><th>' +
-		locale.t(lang, 'value') + '</th><th style="min-width:200px">' + locale.t(lang, 'rel_dist') +
-		'</th></tr></thead>
-		<tbody>${rows}</tbody>
-	</table>
-	</div>
-	</div>'
+		<thead><tr><th>#</th><th>' + locale.t(lang, 'country_code') + '</th><th>' + locale.t(lang, 'year') + '</th><th>' + locale.t(lang, 'value') + '</th><th style="min-width:200px">' + locale.t(lang, 'rel_dist') + '</th></tr></thead>\n\t\t<tbody>${rows}</tbody>\n\t</table>\n\t</div>\n\t</div>'
 }
 
 // OWID 分类内容：按主题 slug 列出各指标 Top N
@@ -591,10 +408,8 @@ fn owid_html(cat string, app &App, lang locale.Lang) string {
 	if inds.len == 0 {
 		body = '
 		<div class="empty-state"><div class="emoji">📭</div>
-		<p>' +
-			locale.t(lang, 'empty_owid') + '</p>
-		<p style="margin-top:6px;font-size:12px">' +
-			locale.t(lang, 'retry_hint') + '</p>
+		<p>' + locale.t(lang, 'empty_owid') + '</p>
+		<p style="margin-top:6px;font-size:12px">' + locale.t(lang, 'retry_hint') + '</p>
 		</div>'
 	} else {
 		for ind in inds {
@@ -612,33 +427,20 @@ fn owid_html(cat string, app &App, lang locale.Lang) string {
 				mut rows := ''
 				for i, it in top {
 					rank := i + 1
-					rows += '<tr>
-						<td style="font-weight:600;color:var(--text-muted)">#${rank}</td>
-						<td><a href="/country/${a(it.country_iso)}">${h(it.country_iso)}</a></td>
-						<td style="font-size:12px;color:var(--text-muted)">${h(it.year.str())}</td>
-						<td class="num-cell" style="font-weight:600">${fmt2(it.value)} <span style="color:var(--text-muted);font-size:12px;font-weight:400">${h(it.unit)}</span></td>
-					</tr>'
+					rows += '<tr>\n\t\t\t\t\t\t<td style="font-weight:600;color:var(--text-muted)">#${rank}</td>\n\t\t\t\t\t\t<td><a href="/country/${a(it.country_iso)}">${h(it.country_iso)}</a></td>\n\t\t\t\t\t\t<td style="font-size:12px;color:var(--text-muted)">${h(it.year.str())}</td>\n\t\t\t\t\t\t<td class="num-cell" style="font-weight:600">${fmt2(it.value)} <span style="color:var(--text-muted);font-size:12px;font-weight:400">${h(it.unit)}</span></td>\n\t\t\t\t\t</tr>'
 				}
-				body +=
-					'
+				body += '
 				<div class="table-wrap" style="padding:0 4px 4px">
 				<table class="data-table" style="border-radius:0">
-					<thead><tr><th>#</th><th>' +
-					locale.t(lang, 'country') + '</th><th>' + locale.t(lang, 'year') + '</th><th>' +
-					locale.t(lang, 'value') + '</th></tr></thead>
-					<tbody>' + rows +
-					'</tbody>
+					<thead><tr><th>#</th><th>' + locale.t(lang, 'country') + '</th><th>' + locale.t(lang, 'year') + '</th><th>' + locale.t(lang, 'value') + '</th></tr></thead>
+					<tbody>' + rows + '</tbody>
 				</table>
 				</div>'
 			}
 			body += '</div>'
 		}
 	}
-	return '
-	<h1>📊 ${h(title)}</h1>
-	<p class="sub">' + h(locale.t(lang, 'src_owid_full')) +
-		'</p>
-	${body}'
+	return '\n\t<h1>📊 ${h(title)}</h1>\n\t<p class="sub">' + h(locale.t(lang, 'src_owid_full')) + '</p>\n\t${body}'
 }
 
 // 国家详情页
@@ -652,22 +454,16 @@ fn render_country(ws models.WorldStats, cats []models.Category, iso2 string, ind
 	})
 	if inds.len == 0 {
 		sidebar := sidebar_html('wb_overview', '', cats, lang)
-		main_html :=
-			'
-		<h1>${flag} ${h(locale.tf(lang, 'country_detail_title', {
+		main_html := '\n\t\t<h1>${flag} ${h(locale.tf(lang, 'country_detail_title', {
 			'iso': iso2_safe
 		}))}${if iso3 != '' {
 			' (' + iso3_safe + ')'
 		} else {
 			''
-		}}</h1>
-		<p class="sub">' + locale.t(lang, 'country_sub') +
-			'</p>
+		}}</h1>\n\t\t<p class="sub">' + locale.t(lang, 'country_sub') + '</p>
 		<div class="empty-state"><div class="emoji">📭</div>
-		<p>' +
-			locale.t(lang, 'country_nodata') + '</p>
-		<p style="margin-top:6px;font-size:12px">' +
-			locale.t(lang, 'country_retry') + '</p>
+		<p>' + locale.t(lang, 'country_nodata') + '</p>
+		<p style="margin-top:6px;font-size:12px">' + locale.t(lang, 'country_retry') + '</p>
 		</div>'
 		return page_shell(page_title, ws, sidebar, main_html, lang)
 	}
@@ -685,48 +481,27 @@ fn render_country(ws models.WorldStats, cats []models.Category, iso2 string, ind
 	for src, list in groups {
 		mut rows := ''
 		for ind in list {
-			rows += '<tr>
-				<td><b>${h(ind.label)}</b></td>
-				<td style="font-size:12px;color:var(--text-muted);font-family:var(--font-mono)">${h(ind.indicator)}</td>
-				<td style="font-size:12px;color:var(--text-muted)">${h(ind.year.str())}</td>
-				<td class="num-cell" style="font-weight:600">${fmt2(ind.value)} <span style="color:var(--text-muted);font-size:12px;font-weight:400">${h(ind.unit)}</span></td>
-			</tr>'
+			rows += '<tr>\n\t\t\t\t<td><b>${h(ind.label)}</b></td>\n\t\t\t\t<td style="font-size:12px;color:var(--text-muted);font-family:var(--font-mono)">${h(ind.indicator)}</td>\n\t\t\t\t<td style="font-size:12px;color:var(--text-muted)">${h(ind.year.str())}</td>\n\t\t\t\t<td class="num-cell" style="font-weight:600">${fmt2(ind.value)} <span style="color:var(--text-muted);font-size:12px;font-weight:400">${h(ind.unit)}</span></td>\n\t\t\t</tr>'
 		}
 		lb := source_label[src] or { src }
-		groups_html +=
-			'
-		<div class="panel" style="padding:0;overflow:hidden;margin-bottom:18px">
-		<div class="panel-header" style="padding:18px 20px 0">
-			<h2 style="margin:0">${h(lb)}</h2><span class="panel-badge">' +
-			h(locale.tf(lang, 'items_count', {
+		groups_html += '\n\t\t<div class="panel" style="padding:0;overflow:hidden;margin-bottom:18px">\n\t\t<div class="panel-header" style="padding:18px 20px 0">\n\t\t\t<h2 style="margin:0">${h(lb)}</h2><span class="panel-badge">' + h(locale.tf(lang, 'items_count', {
 			'n': list.len.str()
-		})) +
-			'</span>
+		})) + '</span>
 		</div>
 		<div class="table-wrap" style="padding:0 4px 4px">
 		<table class="data-table" style="border-radius:0">
-			<thead><tr><th>' +
-			locale.t(lang, 'ind_name') + '</th><th>' + locale.t(lang, 'ind_code') + '</th><th>' +
-			locale.t(lang, 'year') + '</th><th>' + locale.t(lang, 'value') +
-			'</th></tr></thead>
-			<tbody>${rows}</tbody>
-		</table>
-		</div>
-		</div>'
+			<thead><tr><th>' + locale.t(lang, 'ind_name') + '</th><th>' + locale.t(lang, 'ind_code') + '</th><th>' + locale.t(lang, 'year') + '</th><th>' + locale.t(lang, 'value') + '</th></tr></thead>\n\t\t\t<tbody>${rows}</tbody>\n\t\t</table>\n\t\t</div>\n\t\t</div>'
 	}
 	sidebar := sidebar_html('wb_overview', '', cats, lang)
-	main_html := '
-	<h1>${flag} ${h(locale.tf(lang, 'country_detail_title', {
+	main_html := '\n\t<h1>${flag} ${h(locale.tf(lang, 'country_detail_title', {
 		'iso': iso2_safe
 	}))}${if iso3 != '' {
 		' (' + iso3_safe + ')'
 	} else {
 		''
-	}}</h1>
-	<p class="sub">' + locale.t(lang, 'country_sub') + ' · ' + h(locale.tf(lang, 'records_count', {
+	}}</h1>\n\t<p class="sub">' + locale.t(lang, 'country_sub') + ' · ' + h(locale.tf(lang, 'records_count', {
 		'n': inds.len.str()
-	})) + '</p>
-	${groups_html}'
+	})) + '</p>\n\t${groups_html}'
 	return page_shell(page_title, ws, sidebar, main_html, lang)
 }
 
@@ -757,45 +532,45 @@ fn market_meta(market string, lang locale.Lang) (string, string) {
 fn market_tabs(active string, lang locale.Lang) string {
 	tabs := [
 		models.Category{
-			id:          'mk_cn'
-			title:       locale.t(lang, 'mk_cn')
-			source:      'market'
-			icon:        '🇨🇳'
+			id: 'mk_cn'
+			title: locale.t(lang, 'mk_cn')
+			source: 'market'
+			icon: '🇨🇳'
 			description: ''
 		},
 		models.Category{
-			id:          'mk_hk'
-			title:       locale.t(lang, 'mk_hk')
-			source:      'market'
-			icon:        '🇭🇰'
+			id: 'mk_hk'
+			title: locale.t(lang, 'mk_hk')
+			source: 'market'
+			icon: '🇭🇰'
 			description: ''
 		},
 		models.Category{
-			id:          'mk_us'
-			title:       locale.t(lang, 'mk_us')
-			source:      'market'
-			icon:        '🇺🇸'
+			id: 'mk_us'
+			title: locale.t(lang, 'mk_us')
+			source: 'market'
+			icon: '🇺🇸'
 			description: ''
 		},
 		models.Category{
-			id:          'mk_index'
-			title:       locale.t(lang, 'mk_index')
-			source:      'market'
-			icon:        '📊'
+			id: 'mk_index'
+			title: locale.t(lang, 'mk_index')
+			source: 'market'
+			icon: '📊'
 			description: ''
 		},
 		models.Category{
-			id:          'mk_fx'
-			title:       locale.t(lang, 'mk_fx')
-			source:      'market'
-			icon:        '💱'
+			id: 'mk_fx'
+			title: locale.t(lang, 'mk_fx')
+			source: 'market'
+			icon: '💱'
 			description: ''
 		},
 		models.Category{
-			id:          'mk_commodity'
-			title:       locale.t(lang, 'mk_commodity')
-			source:      'market'
-			icon:        '🛢️'
+			id: 'mk_commodity'
+			title: locale.t(lang, 'mk_commodity')
+			source: 'market'
+			icon: '🛢️'
 			description: ''
 		},
 	]
@@ -815,16 +590,8 @@ fn market_html(market string, app &App, lang locale.Lang) string {
 	quotes := app.db.get_market_quotes(market, '') or { []models.MarketQuote{} }
 	tabs := market_tabs(market, lang)
 	if quotes.len == 0 {
-		return
-			'
-		<h1>${h(title)}</h1>
-		<p class="sub">${h(sub)}</p>
-		${tabs}
-		<div class="empty-state"><div class="emoji">📭</div>
-		<p>' +
-			locale.t(lang, 'empty_market') + '</p>
-		<p style="margin-top:6px;font-size:12px">' +
-			locale.t(lang, 'retry_hint') + '</p>
+		return '\n\t\t<h1>${h(title)}</h1>\n\t\t<p class="sub">${h(sub)}</p>\n\t\t${tabs}\n\t\t<div class="empty-state"><div class="emoji">📭</div>\n\t\t<p>' + locale.t(lang, 'empty_market') + '</p>
+		<p style="margin-top:6px;font-size:12px">' + locale.t(lang, 'retry_hint') + '</p>
 		</div>'
 	}
 	// 汇总统计
@@ -839,7 +606,9 @@ fn market_html(market string, app &App, lang locale.Lang) string {
 		}
 		avg_pct += q.change_pct
 	}
-	if quotes.len > 0 { avg_pct = avg_pct / f64(quotes.len) }
+	if quotes.len > 0 {
+		avg_pct = avg_pct / f64(quotes.len)
+	}
 	mut rows := ''
 	for q in quotes {
 		up := q.change >= 0
@@ -847,52 +616,19 @@ fn market_html(market string, app &App, lang locale.Lang) string {
 		arrow := if up { 'arrow-up' } else { 'arrow-down' }
 		sign := if up { '+' } else { '' }
 		vol_txt := if q.volume > 0 { models.format_large(f64(q.volume)) } else { '-' }
-		rows += '<tr class="${cls} market-row">
-			<td><b>${h(q.name)}</b><div style="font-size:11px;color:var(--text-muted);margin-top:2px">${h(locale.t(lang,
-			'data_source'))}: ${h(q.source)}</div></td>
-			<td style="font-family:var(--font-mono);font-size:12px;color:var(--text-muted)">${h(q.symbol)}</td>
-			<td class="num-cell" style="font-weight:600;font-size:15px">${fmt2(q.price)}</td>
-			<td class="${arrow} num-cell" style="font-weight:600">${sign}${fmt2(q.change)}</td>
-			<td class="${arrow} num-cell" style="font-weight:600">${sign}${fmt2(q.change_pct)}%</td>
-			<td class="num-cell" style="font-variant-numeric:tabular-nums">${vol_txt}</td>
-		</tr>'
+		rows += '<tr class="${cls} market-row">\n\t\t\t<td><b>${h(q.name)}</b><div style="font-size:11px;color:var(--text-muted);margin-top:2px">${h(locale.t(lang, 'data_source'))}: ${h(q.source)}</div></td>\n\t\t\t<td style="font-family:var(--font-mono);font-size:12px;color:var(--text-muted)">${h(q.symbol)}</td>\n\t\t\t<td class="num-cell" style="font-weight:600;font-size:15px">${fmt2(q.price)}</td>\n\t\t\t<td class="${arrow} num-cell" style="font-weight:600">${sign}${fmt2(q.change)}</td>\n\t\t\t<td class="${arrow} num-cell" style="font-weight:600">${sign}${fmt2(q.change_pct)}%</td>\n\t\t\t<td class="num-cell" style="font-variant-numeric:tabular-nums">${vol_txt}</td>\n\t\t</tr>'
 	}
 	up_pct := if quotes.len > 0 { (up_count * 100 / quotes.len) } else { 0 }
 	avg_pct_color := if avg_pct >= 0 { 'var(--up)' } else { 'var(--down)' }
 	avg_pct_sign := if avg_pct >= 0 { '+' } else { '' }
-	return
-		'
-	<h1>${h(title)}</h1>
-	<p class="sub">${h(sub)}</p>
-	${tabs}
-	<div class="cards" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));margin-bottom:18px">
-		<div class="card"><div class="cv">${quotes.len}</div><div class="cl">' +
-		h(locale.t(lang, 'mkt_count')) +
-		'</div></div>
-		<div class="card"><div class="cv" style="color:var(--up)">${up_count}</div><div class="cl">' +
-		h(locale.t(lang, 'mkt_up')) +
-		'</div></div>
-		<div class="card"><div class="cv" style="color:var(--down)">${down_count}</div><div class="cl">' +
-		h(locale.t(lang, 'mkt_down')) +
-		'</div></div>
-		<div class="card"><div class="cv" style="color:${avg_pct_color}">${avg_pct_sign}${fmt2(avg_pct)}%</div><div class="cl">' +
-		h(locale.tf(lang, 'mkt_avg', {
+	return '\n\t<h1>${h(title)}</h1>\n\t<p class="sub">${h(sub)}</p>\n\t${tabs}\n\t<div class="cards" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));margin-bottom:18px">\n\t\t<div class="card"><div class="cv">${quotes.len}</div><div class="cl">' + h(locale.t(lang, 'mkt_count')) + '</div></div>\n\t\t<div class="card"><div class="cv" style="color:var(--up)">${up_count}</div><div class="cl">' + h(locale.t(lang, 'mkt_up')) + '</div></div>\n\t\t<div class="card"><div class="cv" style="color:var(--down)">${down_count}</div><div class="cl">' + h(locale.t(lang, 'mkt_down')) + '</div></div>\n\t\t<div class="card"><div class="cv" style="color:${avg_pct_color}">${avg_pct_sign}${fmt2(avg_pct)}%</div><div class="cl">' + h(locale.tf(lang, 'mkt_avg', {
 		'up': up_pct.str()
-	})) +
-		'</div></div>
+	})) + '</div></div>
 	</div>
 	<div class="panel" style="padding:0;overflow:hidden">
 	<div class="table-wrap">
 	<table class="data-table market" style="border-radius:0">
-		<thead><tr><th>' +
-		locale.t(lang, 'quote_name') + '</th><th>' + locale.t(lang, 'code') + '</th><th>' +
-		locale.t(lang, 'quote_price') + '</th><th>' + locale.t(lang, 'quote_chg') + '</th><th>' +
-		locale.t(lang, 'quote_chg_pct') + '</th><th>' + locale.t(lang, 'volume') +
-		'</th></tr></thead>
-		<tbody>${rows}</tbody>
-	</table>
-	</div>
-	</div>'
+		<thead><tr><th>' + locale.t(lang, 'quote_name') + '</th><th>' + locale.t(lang, 'code') + '</th><th>' + locale.t(lang, 'quote_price') + '</th><th>' + locale.t(lang, 'quote_chg') + '</th><th>' + locale.t(lang, 'quote_chg_pct') + '</th><th>' + locale.t(lang, 'volume') + '</th></tr></thead>\n\t\t<tbody>${rows}</tbody>\n\t</table>\n\t</div>\n\t</div>'
 }
 
 // 市场页（独立 shell）

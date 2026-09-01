@@ -31,12 +31,12 @@ fn http_get_timeout(url string, referer string, timeout_us int) !string {
 			time.sleep(sleep_ms)
 		}
 		mut cfg := http.FetchConfig{
-			url:           url
-			method:        .get
-			user_agent:    'Mozilla/5.0 (compatible; WorldApp/1.0)'
-			read_timeout:  time.Duration(timeout_us)
+			url: url
+			method: .get
+			user_agent: 'Mozilla/5.0 (compatible; WorldApp/1.0)'
+			read_timeout: time.Duration(timeout_us)
 			write_timeout: time.Duration(timeout_us)
-			max_retries:   1
+			max_retries: 1
 		}
 		if referer != '' {
 			cfg.header = http.new_header(key: .referer, value: referer)
@@ -65,6 +65,5 @@ fn http_get_timeout(url string, referer string, timeout_us int) !string {
 // esc SQL 转义：与 database.sql_escape 保持一致（反斜杠优先 + 单/双引号 + 控制字符），
 // 避免 MySQL NO_BACKSLASH_ESCAPES 或 utf8mb4 字符集下出现 1366 / 注入。
 fn esc(s string) string {
-	return s.replace('\\', '\\\\').replace("'", "\\'").replace('"', '\\"').replace('\n', '\\n').replace('\r',
-		'').replace('\x00', '')
+	return s.replace('\\', '\\\\').replace("'", "\\'").replace('"', '\\"').replace('\n', '\\n').replace('\r', '').replace('\0', '')
 }

@@ -65,8 +65,7 @@ pub fn fetch_owid(db database.Database) !int {
 	}
 	elapsed := int(time.now().unix_milli() - start.unix_milli())
 	src_label := if local_dir != '' { '本地' } else { 'API' }
-	database.log_line('owid',
-		'OWID 导入完成 (${src_label}): ${total} 条记录, ${fail} 个失败, ${elapsed}ms')
+	database.log_line('owid', 'OWID 导入完成 (${src_label}): ${total} 条记录, ${fail} 个失败, ${elapsed}ms')
 	return total
 }
 
