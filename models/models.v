@@ -26,11 +26,21 @@ pub fn (d DataSource) str() string {
 
 pub fn data_source_from_str(s string) DataSource {
 	match s {
-		'worldbank' { return .worldbank }
-		'imf' { return .imf }
-		'market' { return .market }
-		'owid' { return .owid }
-		else { return .worldbank }
+		'worldbank' {
+			return .worldbank
+		}
+		'imf' {
+			return .imf
+		}
+		'market' {
+			return .market
+		}
+		'owid' {
+			return .owid
+		}
+		else {
+			return .worldbank
+		}
 	}
 }
 
@@ -45,11 +55,10 @@ pub:
 }
 
 // ============ 国家 / 地区 ============
-
 @[table: 'countries']
 pub struct Country {
 pub mut:
-	id         int    @[primary; sql: 'AUTO_INCREMENT']
+	id         int @[primary; sql: 'AUTO_INCREMENT']
 	iso2       string @[unique]
 	iso3       string
 	name       string
@@ -59,7 +68,6 @@ pub mut:
 }
 
 // ============ 宏观经济指标（WorldBank / IMF 通用事实表）============
-
 @[table: 'indicators']
 pub struct Indicator {
 pub mut:
@@ -75,11 +83,10 @@ pub mut:
 }
 
 // ============ 市场行情（股票 / 指数）============
-
 @[table: 'market_quotes']
 pub struct MarketQuote {
 pub mut:
-	id         int    @[primary; sql: 'AUTO_INCREMENT']
+	id         int @[primary; sql: 'AUTO_INCREMENT']
 	symbol     string @[unique]
 	name       string
 	market     string // 'cn' | 'us' | 'hk' | 'index'
@@ -93,7 +100,6 @@ pub mut:
 }
 
 // ============ 市场标的定义（用于配置 / 扩展）============
-
 pub struct MarketSymbol {
 pub:
 	symbol string
@@ -102,7 +108,6 @@ pub:
 }
 
 // ============ 数据采集任务运行记录（用于自动更新 / 状态展示）============
-
 @[table: 'fetch_logs']
 pub struct FetchLog {
 pub mut:
@@ -116,7 +121,6 @@ pub mut:
 }
 
 // ============ 视图聚合结构（供前端展示）============
-
 pub struct CountryStat {
 pub:
 	iso2       string
@@ -184,130 +188,130 @@ pub:
 pub fn all_categories() []Category {
 	return [
 		Category{
-			id:          'wb_overview'
-			title:       '国家经济概览'
-			source:      'worldbank'
-			icon:        '🌍'
+			id: 'wb_overview'
+			title: '国家经济概览'
+			source: 'worldbank'
+			icon: '🌍'
 			description: '世界银行各国经济与社会指标'
 		},
 		Category{
-			id:          'wb_gdp'
-			title:       'GDP 与增长'
-			source:      'worldbank'
-			icon:        '💰'
+			id: 'wb_gdp'
+			title: 'GDP 与增长'
+			source: 'worldbank'
+			icon: '💰'
 			description: 'GDP、人均 GDP、增长率'
 		},
 		Category{
-			id:          'wb_social'
-			title:       '社会民生'
-			source:      'worldbank'
-			icon:        '👥'
+			id: 'wb_social'
+			title: '社会民生'
+			source: 'worldbank'
+			icon: '👥'
 			description: '人口、预期寿命、教育、失业'
 		},
 		Category{
-			id:          'wb_energy'
-			title:       '能源与环境'
-			source:      'worldbank'
-			icon:        '🌱'
+			id: 'wb_energy'
+			title: '能源与环境'
+			source: 'worldbank'
+			icon: '🌱'
 			description: '能源使用、CO2 排放'
 		},
 		Category{
-			id:          'imf_gdp'
-			title:       'IMF GDP 估算'
-			source:      'imf'
-			icon:        '🏛️'
+			id: 'imf_gdp'
+			title: 'IMF GDP 估算'
+			source: 'imf'
+			icon: '🏛️'
 			description: 'IMF 口径 GDP / 人均 GDP'
 		},
 		Category{
-			id:          'imf_wEO'
-			title:       'IMF WEO 预测'
-			source:      'imf'
-			icon:        '📈'
+			id: 'imf_wEO'
+			title: 'IMF WEO 预测'
+			source: 'imf'
+			icon: '📈'
 			description: 'WEO 经济增长预测'
 		},
 		Category{
-			id:          'mk_cn'
-			title:       'A股行情'
-			source:      'market'
-			icon:        '🇨🇳'
+			id: 'mk_cn'
+			title: 'A股行情'
+			source: 'market'
+			icon: '🇨🇳'
 			description: '沪深交易所实时行情'
 		},
 		Category{
-			id:          'mk_hk'
-			title:       '港股行情'
-			source:      'market'
-			icon:        '🇭🇰'
+			id: 'mk_hk'
+			title: '港股行情'
+			source: 'market'
+			icon: '🇭🇰'
 			description: '香港交易所实时行情'
 		},
 		Category{
-			id:          'mk_us'
-			title:       '美股行情'
-			source:      'market'
-			icon:        '🇺🇸'
+			id: 'mk_us'
+			title: '美股行情'
+			source: 'market'
+			icon: '🇺🇸'
 			description: '美股实时行情'
 		},
 		Category{
-			id:          'mk_index'
-			title:       '全球指数'
-			source:      'market'
-			icon:        '📊'
+			id: 'mk_index'
+			title: '全球指数'
+			source: 'market'
+			icon: '📊'
 			description: '主要股指行情'
 		},
 		Category{
-			id:          'mk_fx'
-			title:       '全球汇率'
-			source:      'market'
-			icon:        '💱'
+			id: 'mk_fx'
+			title: '全球汇率'
+			source: 'market'
+			icon: '💱'
 			description: '主要货币对实时汇率'
 		},
 		Category{
-			id:          'mk_commodity'
-			title:       '大宗商品'
-			source:      'market'
-			icon:        '🛢️'
+			id: 'mk_commodity'
+			title: '大宗商品'
+			source: 'market'
+			icon: '🛢️'
 			description: '黄金、原油等大宗商品行情'
 		},
 		// OWID Our World in Data 分类
 		Category{
-			id:          'owid_population'
-			title:       '人口与人口统计'
-			source:      'owid'
-			icon:        '👥'
+			id: 'owid_population'
+			title: '人口与人口统计'
+			source: 'owid'
+			icon: '👥'
 			description: '全球人口变化、年龄结构、生育率、城镇化趋势'
 		},
 		Category{
-			id:          'owid_health'
-			title:       '健康与医疗'
-			source:      'owid'
-			icon:        '🏥'
+			id: 'owid_health'
+			title: '健康与医疗'
+			source: 'owid'
+			icon: '🏥'
 			description: '预期寿命、儿童死亡率、孕产妇健康与吸烟率'
 		},
 		Category{
-			id:          'owid_energy'
-			title:       '能源与环境'
-			source:      'owid'
-			icon:        '⚡'
+			id: 'owid_energy'
+			title: '能源与环境'
+			source: 'owid'
+			icon: '⚡'
 			description: '能源消耗、碳排放、可再生能源与气候变化'
 		},
 		Category{
-			id:          'owid_economy'
-			title:       '经济与繁荣'
-			source:      'owid'
-			icon:        '📈'
+			id: 'owid_economy'
+			title: '经济与繁荣'
+			source: 'owid'
+			icon: '📈'
 			description: '人均 GDP（购买力平价）、经济增长'
 		},
 		Category{
-			id:          'owid_education'
-			title:       '教育与知识'
-			source:      'owid'
-			icon:        '📚'
+			id: 'owid_education'
+			title: '教育与知识'
+			source: 'owid'
+			icon: '📚'
 			description: '平均受教育年限、教育投资与技能发展'
 		},
 		Category{
-			id:          'owid_food'
-			title:       '食品与农业'
-			source:      'owid'
-			icon:        '🌾'
+			id: 'owid_food'
+			title: '食品与农业'
+			source: 'owid'
+			icon: '🌾'
 			description: '营养状况、肉类供给、粮食安全与饮食变化'
 		},
 	]
@@ -316,7 +320,9 @@ pub fn all_categories() []Category {
 // iso2_to_flag_emoji 将 ISO 3166-1 alpha-2 代码转为区域字符 Emoji。
 // 直接构造 UTF-8 字节，避免 rune 转换与 int 运算的兼容性陷阱。
 pub fn iso2_to_flag_emoji(iso2 string) string {
-	if iso2.len != 2 { return '' }
+	if iso2.len != 2 {
+		return ''
+	}
 	mut buf := []u8{}
 	for ch in iso2.bytes() {
 		offset := int(ch) - int('A'[0])
@@ -347,132 +353,132 @@ pub fn (o &OwidIndicator) name(lang locale.Lang) string {
 pub fn owid_indicators() []OwidIndicator {
 	return [
 		OwidIndicator{
-			slug:        'population'
+			slug: 'population'
 			column_name: 'population_historical'
-			topic_slug:  'owid_population'
-			name_zh:     '人口总数'
-			name_en:     'Total Population'
-			unit:        '人'
+			topic_slug: 'owid_population'
+			name_zh: '人口总数'
+			name_en: 'Total Population'
+			unit: '人'
 		},
 		OwidIndicator{
-			slug:        'life-expectancy'
+			slug: 'life-expectancy'
 			column_name: 'life_expectancy_0'
-			topic_slug:  'owid_population'
-			name_zh:     '预期寿命'
-			name_en:     'Life Expectancy'
-			unit:        '岁'
+			topic_slug: 'owid_population'
+			name_zh: '预期寿命'
+			name_en: 'Life Expectancy'
+			unit: '岁'
 		},
 		OwidIndicator{
-			slug:        'children-per-woman-un'
+			slug: 'children-per-woman-un'
 			column_name: 'fertility_rate__sex_all__age_all__variant_estimates'
-			topic_slug:  'owid_population'
-			name_zh:     '生育率'
-			name_en:     'Fertility Rate'
-			unit:        '孩/妇'
+			topic_slug: 'owid_population'
+			name_zh: '生育率'
+			name_en: 'Fertility Rate'
+			unit: '孩/妇'
 		},
 		OwidIndicator{
-			slug:        'median-age'
+			slug: 'median-age'
 			column_name: 'median_age__sex_all__age_all__variant_estimates'
-			topic_slug:  'owid_population'
-			name_zh:     '中位年龄'
-			name_en:     'Median Age'
-			unit:        '岁'
+			topic_slug: 'owid_population'
+			name_zh: '中位年龄'
+			name_en: 'Median Age'
+			unit: '岁'
 		},
 		OwidIndicator{
-			slug:        'share-of-population-urban'
+			slug: 'share-of-population-urban'
 			column_name: 'share__area_type_urban__data_type_estimates'
-			topic_slug:  'owid_population'
-			name_zh:     '城镇化率'
-			name_en:     'Urban Population Share'
-			unit:        '%'
+			topic_slug: 'owid_population'
+			name_zh: '城镇化率'
+			name_en: 'Urban Population Share'
+			unit: '%'
 		},
 		OwidIndicator{
-			slug:        'child-mortality'
+			slug: 'child-mortality'
 			column_name: 'child_mortality_rate'
-			topic_slug:  'owid_health'
-			name_zh:     '5岁以下儿童死亡率'
-			name_en:     'Child Mortality Rate'
-			unit:        '‰'
+			topic_slug: 'owid_health'
+			name_zh: '5岁以下儿童死亡率'
+			name_en: 'Child Mortality Rate'
+			unit: '‰'
 		},
 		OwidIndicator{
-			slug:        'maternal-mortality'
+			slug: 'maternal-mortality'
 			column_name: 'mmr'
-			topic_slug:  'owid_health'
-			name_zh:     '孕产妇死亡率'
-			name_en:     'Maternal Mortality'
-			unit:        '/10万'
+			topic_slug: 'owid_health'
+			name_zh: '孕产妇死亡率'
+			name_en: 'Maternal Mortality'
+			unit: '/10万'
 		},
 		OwidIndicator{
-			slug:        'share-of-adults-who-smoke'
+			slug: 'share-of-adults-who-smoke'
 			column_name: 'tobacco_use_pct_age_std__sex_both_sexes'
-			topic_slug:  'owid_health'
-			name_zh:     '吸烟率'
-			name_en:     'Smoking Rate'
-			unit:        '%'
+			topic_slug: 'owid_health'
+			name_zh: '吸烟率'
+			name_en: 'Smoking Rate'
+			unit: '%'
 		},
 		OwidIndicator{
-			slug:        'annual-co2-emissions-per-country'
+			slug: 'annual-co2-emissions-per-country'
 			column_name: 'emissions_total'
-			topic_slug:  'owid_energy'
-			name_zh:     '年度CO₂排放量'
-			name_en:     'Annual CO₂ Emissions'
-			unit:        '吨'
+			topic_slug: 'owid_energy'
+			name_zh: '年度CO₂排放量'
+			name_en: 'Annual CO₂ Emissions'
+			unit: '吨'
 		},
 		OwidIndicator{
-			slug:        'co2-emissions-per-capita'
+			slug: 'co2-emissions-per-capita'
 			column_name: 'emissions_total_per_capita'
-			topic_slug:  'owid_energy'
-			name_zh:     '人均CO₂排放量'
-			name_en:     'CO₂ per Capita'
-			unit:        '吨'
+			topic_slug: 'owid_energy'
+			name_zh: '人均CO₂排放量'
+			name_en: 'CO₂ per Capita'
+			unit: '吨'
 		},
 		OwidIndicator{
-			slug:        'share-electricity-renewables'
+			slug: 'share-electricity-renewables'
 			column_name: 'renewable_share_of_electricity__pct'
-			topic_slug:  'owid_energy'
-			name_zh:     '可再生电力占比'
-			name_en:     'Renewable Electricity Share'
-			unit:        '%'
+			topic_slug: 'owid_energy'
+			name_zh: '可再生电力占比'
+			name_en: 'Renewable Electricity Share'
+			unit: '%'
 		},
 		OwidIndicator{
-			slug:        'gdp-per-capita-worldbank'
+			slug: 'gdp-per-capita-worldbank'
 			column_name: 'ny_gdp_pcap_pp_kd'
-			topic_slug:  'owid_economy'
-			name_zh:     '人均GDP(PPP)'
-			name_en:     'GDP per Capita (PPP)'
-			unit:        '国际元'
+			topic_slug: 'owid_economy'
+			name_zh: '人均GDP(PPP)'
+			name_en: 'GDP per Capita (PPP)'
+			unit: '国际元'
 		},
 		OwidIndicator{
-			slug:        'mean-years-of-schooling'
+			slug: 'mean-years-of-schooling'
 			column_name: 'mf_youth_and_adults__15_64_years__average_years_of_education'
-			topic_slug:  'owid_education'
-			name_zh:     '平均受教育年限'
-			name_en:     'Mean Years of Schooling'
-			unit:        '年'
+			topic_slug: 'owid_education'
+			name_zh: '平均受教育年限'
+			name_en: 'Mean Years of Schooling'
+			unit: '年'
 		},
 		OwidIndicator{
-			slug:        'meat-supply-per-person'
+			slug: 'meat-supply-per-person'
 			column_name: 'meat__total__00002943__food_available_for_consumption__0645pc__kilograms_per_year_per_capita'
-			topic_slug:  'owid_food'
-			name_zh:     '人均肉类供给'
-			name_en:     'Meat Supply per Person'
-			unit:        '公斤/年'
+			topic_slug: 'owid_food'
+			name_zh: '人均肉类供给'
+			name_en: 'Meat Supply per Person'
+			unit: '公斤/年'
 		},
 		OwidIndicator{
-			slug:        'food-supply-kcal'
+			slug: 'food-supply-kcal'
 			column_name: 'daily_calories'
-			topic_slug:  'owid_food'
-			name_zh:     '日均热量供给'
-			name_en:     'Daily Calorie Supply'
-			unit:        '千卡/人/天'
+			topic_slug: 'owid_food'
+			name_zh: '日均热量供给'
+			name_en: 'Daily Calorie Supply'
+			unit: '千卡/人/天'
 		},
 		OwidIndicator{
-			slug:        'prevalence-of-undernourishment'
+			slug: 'prevalence-of-undernourishment'
 			column_name: '_2_1_1_prevalence_of_undernourishment__000000000024000__value__006121__percent'
-			topic_slug:  'owid_food'
-			name_zh:     '营养不足发生率'
-			name_en:     'Prevalence of Undernourishment'
-			unit:        '%'
+			topic_slug: 'owid_food'
+			name_zh: '营养不足发生率'
+			name_en: 'Prevalence of Undernourishment'
+			unit: '%'
 		},
 	]
 }
@@ -768,7 +774,7 @@ pub fn iso3_to_iso2(iso3 string) string {
 		'OWID_EUR':  ''
 		'OWID_M49':  ''
 	}
-	return m[iso3] or { '' }
+	return m[iso3] or { if iso3.len >= 2 { iso3[0..2] } else { '' } }
 }
 
 // format_large 格式化大数值，保留 2 位小数（Python .2f 风格）

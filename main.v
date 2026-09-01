@@ -10,12 +10,17 @@ import fetch
 import locale
 import sync
 
-// 编译期嵌入静态资源：单二进制即可独立部署，运行时不依赖源码目录的 static/
-const embedded_css = $embed_file('static/css/style.css').to_string()
+// Load static resources at runtime. Avoid compile-time embedding so builds succeed when some files are gitignored (e.g. static/js/app.js).
+fn load_static_file(relpath string) string {
+	path := os.join_path(os.getwd(), relpath)
+	content := os.read_file(path) or {
+		database.log_line('boot', '静态文件缺失 ${relpath}: ${err}')
+		return ''
+	}
+	return content
+}
 
-const embedded_js = $embed_file('static/js/app.js').to_string()
-
-// release_asset 把嵌入的资源释放到程序目录 .assets/ 下，返回绝对路径供 veb 静态服务使用
+// release_asset 把资源写到程序目录 .assets/ 下，返回绝对路径供 veb 静态服务使用
 fn release_asset(fname string, content string) string {
 	dir := os.join_path(os.dir(os.executable()), '.assets')
 	os.mkdir_all(dir) or {}
@@ -28,8 +33,16 @@ fn release_asset(fname string, content string) string {
 }
 
 fn main() {
-	css_path := release_asset('style.css', embedded_css)
-	js_path := release_asset('app.js', embedded_js)
+	css_content := load_static_file('static/css/style.css')
+	js_content := load_static_file('static/js/app.js')
+	mut css_path := ''
+	mut js_path := ''
+	if css_content != '' {
+		css_path = release_asset('style.css', css_content)
+	}
+	if js_content != '' {
+		js_path = release_asset('app.js', js_content)
+	}
 	mut app := &App{
 		static_files: {}
 	}
@@ -74,12 +87,12 @@ fn main() {
 	// 3. 后台自动抓取/更新：所有 HTTP 请求带超时（fetch/http_util.v），
 	// 无外网时快速失败并写日志，不会阻塞服务器启动。
 	// OWID 数据从本地 CSV 导入，无需网络请求。
-	go app.background_refresh()
 
 	// 4. 启动 9 秒后自动打开浏览器展示首页（此时服务器已就绪）
-	go open_browser_later()
+	go app.background_refresh()
 
-	veb.run_at[App, Context](mut app, port: 3003) or { eprintln('服务器启动失败: $err') }
+	go open_browser_later()
+	veb.run_at[App, Context](mut app, port: 3003) or { eprintln('服务器启动失败: \$err') }
 }
 
 // open_browser_later 启动 9 秒后用系统默认浏览器打开首页。
@@ -103,6 +116,9 @@ fn open_browser_later() {
 
 // is_wsl 判断是否运行在 WSL 环境
 fn is_wsl() bool {
+	if !os.exists('/proc/version') {
+		return false
+	}
 	v := os.read_file('/proc/version') or { return false }
 	return v.to_lower().contains('microsoft')
 }
@@ -115,14 +131,12 @@ fn (mut app App) maybe_import_sqlite() {
 	cnt := app.db.count_countries('') or { 0 }
 	mq := app.db.count_market_quotes() or { 0 }
 	if cnt > 0 || mq > 0 {
-		database.log_line('import',
-			'库中已有数据 (countries=${cnt}, quotes=${mq})，跳过 SQLite 导入')
+		database.log_line('import', '库中已有数据 (countries=${cnt}, quotes=${mq})，跳过 SQLite 导入')
 		return
 	}
 	paths_str := os.getenv('WA_SQLITE_PATHS')
 	if paths_str == '' {
-		database.log_line('import',
-			'未设置 WA_SQLITE_PATHS，跳过 SQLite 导入（后台将从公开 API 抓取数据填充）')
+		database.log_line('import', '未设置 WA_SQLITE_PATHS，跳过 SQLite 导入（后台将从公开 API 抓取数据填充）')
 		return
 	}
 	database.log_line('import', 'WA_SQLITE_PATHS 已设置，开始导入初始数据...')
@@ -135,8 +149,7 @@ fn (mut app App) maybe_import_sqlite() {
 	}
 	for c in candidates {
 		if res := app.db.import_from_sqlite(c) {
-			database.log_line('import',
-				'已从 ${c} 导入: indicators=${res.indicators}, market=${res.market}')
+			database.log_line('import', '已从 ${c} 导入: indicators=${res.indicators}, market=${res.market}')
 		}
 	}
 }
@@ -159,7 +172,7 @@ fn (mut app App) background_refresh() {
 
 // run_fetch 统一包装：调用 fn() !int，返回 (ok bool, n int) 并把 error 输出给背景日志。
 // 避免 V 的 `if n := foo() { ... } else { fail++; log err }` 在 `else` 块里访问不到 `err` 的陷阱。
-fn run_fetch(label string, f fn () !int) (bool, int) {
+fn run_fetch(label string, f fn() !int) (bool, int) {
 	n := f() or {
 		database.log_line('background', '${label} 失败: ${err}')
 		return false, 0
@@ -235,8 +248,7 @@ fn (mut app App) trigger_fetch_all() {
 	} else {
 		database.log_line('background', 'OWID 完成: ${nowid} 条记录')
 	}
-	database.log_line('background',
-		'全量抓取结束: ${total_sources - fail}/${total_sources} 个数据源成功, 耗时 ${elapsed_ms(start)}ms')
+	database.log_line('background', '全量抓取结束: ${total_sources - fail}/${total_sources} 个数据源成功, 耗时 ${elapsed_ms(start)}ms')
 }
 
 // trigger_fetch_quotes 仅刷新高频数据（股票 / 指数 / 汇率 / 大宗商品）
@@ -255,8 +267,7 @@ fn (mut app App) trigger_fetch_quotes() {
 		return fetch.fetch_commodity(app.db)
 	})
 	if !ok_c { fail++ }
-	database.log_line('background',
-		'行情抓取结束: ${3 - fail}/3 成功, 耗时 ${elapsed_ms(start)}ms')
+	database.log_line('background', '行情抓取结束: ${3 - fail}/3 成功, 耗时 ${elapsed_ms(start)}ms')
 }
 
 // elapsed_ms 自 start 起经过的毫秒数（用于统一日志格式）
@@ -267,16 +278,16 @@ fn elapsed_ms(start time.Time) int {
 }
 
 // ============ veb 应用 ============
-
 @[post_init]
 pub fn (mut app App) init() {
 }
 
 pub struct App {
 	veb.Context
-pub mut:
+
 	// 以下字段需为 pub mut 才能满足 veb 的 StaticApp 接口，
 	// 否则静态文件路由不会生效（/static/* 一律 404）
+pub mut:
 	static_files                  map[string]string
 	static_mime_types             map[string]string
 	static_hosts                  map[string]string
@@ -307,9 +318,9 @@ fn (mut app App) resolve_lang(mut ctx Context) locale.Lang {
 	if q != '' {
 		lang := locale.parse_lang(q)
 		ctx.set_cookie(http.Cookie{
-			name:    'lang'
-			value:   lang.str()
-			path:    '/'
+			name: 'lang'
+			value: lang.str()
+			path: '/'
 			max_age: 86400 * 365
 		})
 		return lang

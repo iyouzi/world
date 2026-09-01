@@ -1,6 +1,6 @@
 module locale
 
-import os
+import os as _
 
 // 双语词典必须保持 key 完全一致：缺失一侧的 key 会在运行时静默回退到另一种
 // 语言（见 lookup），导致界面混语而非报错。此测试捕获这种回归。

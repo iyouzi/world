@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [ master, '**' ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install system deps
+        run: |
+          sudo apt update
+          sudo apt install -y build-essential libssl-dev pkg-config curl unzip ca-certificates
+
+      - name: Install V
+        run: |
+          curl -s https://raw.githubusercontent.com/vlang/v/master/get.sh | bash
+          export PATH="$HOME/.vlang/bin:$PATH"
+          echo "V: $(which v)"
+
+      - name: Ensure generate script is executable
+        run: chmod +x ./scripts/generate_static.sh || true
+
+      - name: Generate static files
+        run: ./scripts/generate_static.sh
+
+      - name: Format
+        run: v fmt -w .
+
+      - name: Run tests
+        run: v test .
+
+      - name: Build binary
+        run: v -o world_data .
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: world_data
+          path: ./world_data
