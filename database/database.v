@@ -72,10 +72,10 @@ pub fn (d &Database) handle() mysql.DB {
 // - 对看起来像数字的参数直接原样插入（不加引号）
 // - 对其他参数使用 sql_escape 并用单引号包裹
 // 这样可以显著降低 SQL 注入风险（相比直接字符串拼接更安全）。
-pub fn (d &Database) exec_params(query string, params ...string) ([]mysql.Row, error) {
+pub fn (d &Database) exec_params(query string, params ...string) ![]mysql.Row {
 	mut s := query
 	for p in params {
-		insert := ''
+		mut insert := ''
 		if p.len == 0 {
 			insert = "''"
 		} else if is_numeric(p) {
@@ -84,16 +84,16 @@ pub fn (d &Database) exec_params(query string, params ...string) ([]mysql.Row, e
 			insert = "'${sql_escape(p)}'"
 		}
 		// replace first occurrence of '?' with insert
-		idx := s.index_after('?', 0)
+		idx := s.index_after('?', 0) or { -1 }
 		if idx == -1 {
 			// no placeholder left; append
 			s += ' ' + insert
 		} else {
-			s = s[..idx] + insert + s[idx+1..]
+			s = s[..idx] + insert + s[idx + 1..]
 		}
 	}
-	rows := d.handle().exec(s) or { return []mysql.Row{}, error('exec_params failed: ${err}') }
-	return rows, nil
+	rows := d.handle().exec(s) or { return error('exec_params failed: ${err}') }
+	return rows
 }
 
 fn is_numeric(s string) bool {
@@ -245,10 +245,9 @@ pub fn log_line(tag string, msg string) {
 
 pub fn (d &Database) log_fetch(source string, status string, message string, records int, duration_ms int) {
 	log_line(source, '${status}: ${message} (${records} 条, ${duration_ms}ms)')
-	m := d.handle()
 	now_str := format_datetime(time.now())
-	_, _ = d.exec_params("INSERT INTO fetch_logs (source, status, message, records, started_at, duration_ms) VALUES (?,?,?,?,?,?)", source, status, message, '${records}', now_str, '${duration_ms}') or {
-		log_line('fetch', '写入 fetch_logs 失败: \$err')
+	d.exec_params('INSERT INTO fetch_logs (source, status, message, records, started_at, duration_ms) VALUES (?,?,?,?,?,?)', source, status, message, '${records}', now_str, '${duration_ms}') or {
+		log_line('fetch', '写入 fetch_logs 失败: ${err}')
 	}
 }
 
@@ -313,7 +312,7 @@ fn (mut d Database) import_worldbank_sqlite(sdb sqlite.DB) !int {
 		cname := v[2]
 		region := v[3]
 		income := v[4]
-		_, _ = d.exec_params("INSERT IGNORE INTO countries (iso2, iso3, name, region, income) VALUES (?,?,?,?,?)", iso2, iso3, cname, region, income) or {
+		d.exec_params('INSERT IGNORE INTO countries (iso2, iso3, name, region, income) VALUES (?,?,?,?,?)', iso2, iso3, cname, region, income) or {
 			eprintln('[import] country insert err: ${err}')
 		}
 		cins++
@@ -333,7 +332,7 @@ fn (mut d Database) import_worldbank_sqlite(sdb sqlite.DB) !int {
 		}
 		yr := dt.int()
 		label := indicator_label(ind)
-		_, _ = d.exec_params("INSERT INTO indicators (source, country_iso, indicator, label, year, value, unit) VALUES (?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE value=VALUES(value), year=VALUES(year), updated_at=CURRENT_TIMESTAMP", 'worldbank', cc, ind, label, '${yr}', '${val}', '') or {}
+		d.exec_params('INSERT INTO indicators (source, country_iso, indicator, label, year, value, unit) VALUES (?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE value=VALUES(value), year=VALUES(year), updated_at=CURRENT_TIMESTAMP', 'worldbank', cc, ind, label, '${yr}', '${val}', '') or {}
 		n++
 	}
 	return n
@@ -379,7 +378,7 @@ pub fn (d &Database) backfill_iso3() int {
 		if iso3 == '' {
 			continue
 		}
-		_, _ = d.exec_params("UPDATE countries SET iso3 = ? WHERE iso2 = ?", iso3, r.vals[0]) or {
+		d.exec_params('UPDATE countries SET iso3 = ? WHERE iso2 = ?', iso3, r.vals[0]) or {
 			continue
 		}
 		fixed++
@@ -409,7 +408,7 @@ fn (mut d Database) import_market_sqlite(sdb sqlite.DB) !int {
 		vol := v[5].i64()
 		src := v[6]
 		market := market_of(symbol, src)
-		_, _ = d.exec_params("INSERT INTO market_quotes (symbol, name, market, price, prev_close, chg, chg_pct, volume, source) VALUES (?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE price=VALUES(price), chg=VALUES(chg), chg_pct=VALUES(chg_pct)", symbol, sname, market, '${price}', '${price}', '${chg}', '${pct}', '${vol}', src) or {}
+		d.exec_params('INSERT INTO market_quotes (symbol, name, market, price, prev_close, chg, chg_pct, volume, source) VALUES (?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE price=VALUES(price), chg=VALUES(chg), chg_pct=VALUES(chg_pct)', symbol, sname, market, '${price}', '${price}', '${chg}', '${pct}', '${vol}', src) or {}
 		n++
 	}
 	return n

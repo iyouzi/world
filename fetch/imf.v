@@ -73,7 +73,7 @@ pub fn fetch_imf(dbconn &database.Database, limit int) !int {
 			for year_key, v in vals {
 				if v > 0 {
 					y_str := year_key.str()
-					_, _ = dbconn.exec_params("INSERT INTO indicators (source, country_iso, indicator, label, year, value, unit) VALUES (?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE value=VALUES(value), year=VALUES(year), updated_at=CURRENT_TIMESTAMP", 'imf', iso2, ds_code, label, '${y_str}', '${v}', unit)
+					dbconn.exec_params('INSERT INTO indicators (source, country_iso, indicator, label, year, value, unit) VALUES (?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE value=VALUES(value), year=VALUES(year), updated_at=CURRENT_TIMESTAMP', 'imf', iso2, ds_code, label, '${y_str}', '${v}', unit) or {}
 					total++
 				}
 			}

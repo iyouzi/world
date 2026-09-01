@@ -612,7 +612,7 @@ fn default_symbols() []models.MarketSymbol {
 // upsert_quote 写入/更新一条行情。注意表列名是 chg / chg_pct（change 是 MySQL 保留字）。
 fn upsert_quote(dbconn &database.Database, q models.MarketQuote) bool {
 	mut m := dbconn.handle()
-	_, _ = dbconn.exec_params("INSERT INTO market_quotes (symbol, name, market, price, prev_close, chg, chg_pct, volume, source) VALUES (?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE name=VALUES(name), market=VALUES(market), price=VALUES(price), prev_close=VALUES(prev_close), chg=VALUES(chg), chg_pct=VALUES(chg_pct), volume=VALUES(volume), source=VALUES(source), updated_at=CURRENT_TIMESTAMP", q.symbol, q.name, q.market, '${q.price}', '${q.prev_close}', '${q.change}', '${q.change_pct}', '${q.volume}', q.source) or {
+	dbconn.exec_params('INSERT INTO market_quotes (symbol, name, market, price, prev_close, chg, chg_pct, volume, source) VALUES (?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE name=VALUES(name), market=VALUES(market), price=VALUES(price), prev_close=VALUES(prev_close), chg=VALUES(chg), chg_pct=VALUES(chg_pct), volume=VALUES(volume), source=VALUES(source), updated_at=CURRENT_TIMESTAMP', q.symbol, q.name, q.market, '${q.price}', '${q.prev_close}', '${q.change}', '${q.change_pct}', '${q.volume}', q.source) or {
 		database.log_line('market', '写入行情失败 ${q.symbol}: ${err}')
 		return false
 	}

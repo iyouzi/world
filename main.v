@@ -90,7 +90,6 @@ fn main() {
 
 	// 4. 启动 9 秒后自动打开浏览器展示首页（此时服务器已就绪）
 	go app.background_refresh()
-
 	go open_browser_later()
 	veb.run_at[App, Context](mut app, port: 3003) or { eprintln('服务器启动失败: \$err') }
 }

@@ -319,12 +319,12 @@ pub fn fetch_worldbank(dbconn &database.Database, limit int) !int {
 		}
 		cn := names[iso3]
 		i2 := iso3_to_iso2(iso3)
-		dbconn.exec_params("INSERT IGNORE INTO countries (iso2, iso3, name, region) VALUES (?,?,?,?)", i2, iso3, cn, 'global') or {}
+		dbconn.exec_params('INSERT IGNORE INTO countries (iso2, iso3, name, region) VALUES (?,?,?,?)', i2, iso3, cn, 'global') or {}
 
 		for ind in inds {
 			v := fetch_wb_value(iso3, ind.code)
 			if v.ok {
-				_, _ = dbconn.exec_params("INSERT INTO indicators (source, country_iso, indicator, label, year, value, unit) VALUES (?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE value=VALUES(value), year=VALUES(year), updated_at=CURRENT_TIMESTAMP", 'worldbank', i2, ind.code, ind.label, '${v.year}', '${v.value}', ind.unit)
+				dbconn.exec_params('INSERT INTO indicators (source, country_iso, indicator, label, year, value, unit) VALUES (?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE value=VALUES(value), year=VALUES(year), updated_at=CURRENT_TIMESTAMP', 'worldbank', i2, ind.code, ind.label, '${v.year}', '${v.value}', ind.unit) or {}
 				inserted++
 			} else {
 				req_fail++
@@ -426,7 +426,7 @@ pub fn fetch_wld(dbconn &database.Database) !int {
 	for ind in wld_inds {
 		v := fetch_wb_value('WLD', ind.code)
 		if v.ok {
-			_, _ = dbconn.exec_params("INSERT INTO indicators (source, country_iso, indicator, label, year, value, unit) VALUES (?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE value=VALUES(value), year=VALUES(year), updated_at=CURRENT_TIMESTAMP", 'worldbank', 'WLD', ind.code, ind.label, '${v.year}', '${v.value}', ind.unit) or {}
+			dbconn.exec_params('INSERT INTO indicators (source, country_iso, indicator, label, year, value, unit) VALUES (?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE value=VALUES(value), year=VALUES(year), updated_at=CURRENT_TIMESTAMP', 'worldbank', 'WLD', ind.code, ind.label, '${v.year}', '${v.value}', ind.unit) or {}
 			inserted++
 		}
 	}
