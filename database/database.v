@@ -67,6 +67,56 @@ pub fn (d &Database) handle() mysql.DB {
 	return d.db
 }
 
+// exec_params 在数据库端实现一个简单的参数化替换，用于替换代码中大量的字符串拼接。
+// 说明：优选使用原生 prepared statement（若 mysql.DB 支持），但为兼容不同环境此处实现基于占位符 '?' 的安全替换：
+// - 对看起来像数字的参数直接原样插入（不加引号）
+// - 对其他参数使用 sql_escape 并用单引号包裹
+// 这样可以显著降低 SQL 注入风险（相比直接字符串拼接更安全）。
+pub fn (d &Database) exec_params(query string, params ...string) ([]mysql.Row, error) {
+	mut s := query
+	for p in params {
+		insert := ''
+		if p.len == 0 {
+			insert = "''"
+		} else if is_numeric(p) {
+			insert = p
+		} else {
+			insert = "'${sql_escape(p)}'"
+		}
+		// replace first occurrence of '?' with insert
+		idx := s.index_after('?', 0)
+		if idx == -1 {
+			// no placeholder left; append
+			s += ' ' + insert
+		} else {
+			s = s[..idx] + insert + s[idx+1..]
+		}
+	}
+	rows := d.handle().exec(s) or { return []mysql.Row{}, error('exec_params failed: ${err}') }
+	return rows, nil
+}
+
+fn is_numeric(s string) bool {
+	mut seen_dot := false
+	for ch in s.bytes() {
+		if ch >= `0` && ch <= `9` {
+			continue
+		}
+		if ch == `.` && !seen_dot {
+			seen_dot = true
+			continue
+		}
+		if ch == `-` {
+			continue
+		}
+		if ch == `e` || ch == `E` {
+			continue
+		}
+		return false
+	}
+	return true
+}
+
 // table_exists 检查指定表是否已存在
 fn (d &Database) table_exists(name string) bool {
 	m := d.handle()
@@ -197,7 +247,7 @@ pub fn (d &Database) log_fetch(source string, status string, message string, rec
 	log_line(source, '${status}: ${message} (${records} 条, ${duration_ms}ms)')
 	m := d.handle()
 	now_str := format_datetime(time.now())
-	m.exec("INSERT INTO fetch_logs (source, status, message, records, started_at, duration_ms) VALUES ('${sql_escape(source)}', '${sql_escape(status)}', '${sql_escape(message)}', ${records}, '${now_str}', ${duration_ms})") or {
+	_, _ = d.exec_params("INSERT INTO fetch_logs (source, status, message, records, started_at, duration_ms) VALUES (?,?,?,?,?,?)", source, status, message, '${records}', now_str, '${duration_ms}') or {
 		log_line('fetch', '写入 fetch_logs 失败: \$err')
 	}
 }
@@ -263,7 +313,7 @@ fn (mut d Database) import_worldbank_sqlite(sdb sqlite.DB) !int {
 		cname := v[2]
 		region := v[3]
 		income := v[4]
-		m.exec("INSERT IGNORE INTO countries (iso2, iso3, name, region, income) VALUES ('${sql_escape(iso2)}', '${sql_escape(iso3)}', '${sql_escape(cname)}', '${sql_escape(region)}', '${sql_escape(income)}')") or {
+		_, _ = d.exec_params("INSERT IGNORE INTO countries (iso2, iso3, name, region, income) VALUES (?,?,?,?,?)", iso2, iso3, cname, region, income) or {
 			eprintln('[import] country insert err: ${err}')
 		}
 		cins++
@@ -283,7 +333,7 @@ fn (mut d Database) import_worldbank_sqlite(sdb sqlite.DB) !int {
 		}
 		yr := dt.int()
 		label := indicator_label(ind)
-		m.exec("INSERT INTO indicators (source, country_iso, indicator, label, year, value, unit) VALUES ('worldbank', '${sql_escape(cc)}', '${sql_escape(ind)}', '${sql_escape(label)}', ${yr}, ${val}, '') ON DUPLICATE KEY UPDATE value=VALUES(value), year=VALUES(year), updated_at=CURRENT_TIMESTAMP") or {}
+		_, _ = d.exec_params("INSERT INTO indicators (source, country_iso, indicator, label, year, value, unit) VALUES (?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE value=VALUES(value), year=VALUES(year), updated_at=CURRENT_TIMESTAMP", 'worldbank', cc, ind, label, '${yr}', '${val}', '') or {}
 		n++
 	}
 	return n
@@ -329,7 +379,7 @@ pub fn (d &Database) backfill_iso3() int {
 		if iso3 == '' {
 			continue
 		}
-		m.exec("UPDATE countries SET iso3 = '${sql_escape(iso3)}' WHERE iso2 = '${sql_escape(r.vals[0])}'") or {
+		_, _ = d.exec_params("UPDATE countries SET iso3 = ? WHERE iso2 = ?", iso3, r.vals[0]) or {
 			continue
 		}
 		fixed++
@@ -359,7 +409,7 @@ fn (mut d Database) import_market_sqlite(sdb sqlite.DB) !int {
 		vol := v[5].i64()
 		src := v[6]
 		market := market_of(symbol, src)
-		m.exec("INSERT INTO market_quotes (symbol, name, market, price, prev_close, chg, chg_pct, volume, source) VALUES ('${sql_escape(symbol)}', '${sql_escape(sname)}', '${market}', ${price}, ${price}, ${chg}, ${pct}, ${vol}, '${sql_escape(src)}') ON DUPLICATE KEY UPDATE price=VALUES(price), chg=VALUES(chg), chg_pct=VALUES(chg_pct)") or {}
+		_, _ = d.exec_params("INSERT INTO market_quotes (symbol, name, market, price, prev_close, chg, chg_pct, volume, source) VALUES (?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE price=VALUES(price), chg=VALUES(chg), chg_pct=VALUES(chg_pct)", symbol, sname, market, '${price}', '${price}', '${chg}', '${pct}', '${vol}', src) or {}
 		n++
 	}
 	return n

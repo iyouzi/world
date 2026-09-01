@@ -37,8 +37,7 @@ fn test_sidebar_html_lists_categories_and_search() {
 
 // 边栏必须位于主内容之后（右侧），便于鼠标操作
 fn test_page_shell_sidebar_on_right() {
-	html := page_shell('t', models.WorldStats{}, '<aside class="sidebar">S</aside>',
-		'<main>M</main>', .zh)
+	html := page_shell('t', models.WorldStats{}, '<aside class="sidebar">S</aside>', '<main>M</main>', .zh)
 	si := html.index('<aside') or { -1 }
 	mi := html.index('<main class="content">') or { -1 }
 	assert si != -1 && mi != -1
@@ -72,14 +71,12 @@ fn test_sidebar_search_escapes_xss_payload() {
 	// 原始脚本串绝不能直接出现在 value 属性中（会被解释为属性闭合+脚本）
 	assert !sb.contains('"><script>')
 	// 搜索框 value 必须是经过转义的形式
-	assert sb.contains('value=&quot;&gt;&lt;script&gt;')
-		|| sb.contains('value="&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;"')
+	assert sb.contains('value=&quot;&gt;&lt;script&gt;') || sb.contains('value="&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;"')
 }
 
 fn test_js_str_blocks_script_closer() {
 	// </script> 会终止整个 script 块，必须转义为 <\/ 避免 break-out
-	assert js_str('foo</script>bar').contains('<\\/script>')
-		|| js_str('foo</script>bar') == 'foo<\\/script>bar'
+	assert js_str('foo</script>bar').contains('<\\/script>') || js_str('foo</script>bar') == 'foo<\\/script>bar'
 	// 引号与反斜杠
 	assert js_str('it\'s "ok"').contains("\\'") && js_str('it\'s "ok"').contains('\\"')
 	assert js_str('a\\b').starts_with('a\\\\b')

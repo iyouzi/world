@@ -30,3 +30,23 @@
 [background] fx 完成: 11
 [commodity] success: 更新 8 个商品品种 (8 条, 231ms)
 [background] commodity 完成: 8
+[boot] 静态文件缺失 static/js/app.js: failed to open file "/mnt/c/Users/icoke/.copilot/repos/copilot-worktrees/iyouzi_world/changrui-expert-adventure/static/js/app.js"; code: 2
+[boot] 初始化 MySQL...
+[boot] 数据库已存在，跳过创建: all_in_one
+[schema] 表已存在，跳过创建: countries
+[schema] 表已存在，跳过创建: indicators
+[schema] 表已存在，跳过创建: market_quotes
+[schema] 表已存在，跳过创建: fetch_logs
+[boot] MySQL 连接成功
+[import] 库中已有数据 (countries=297, quotes=129)，跳过 SQLite 导入
+[background] 开始抓取全部数据源...
+[boot] 已通过 cmd.exe 打开浏览器: http://localhost:3003
+[boot] 初始化 MySQL...
+[boot] 数据库已存在，跳过创建: all_in_one
+[schema] 表已存在，跳过创建: countries
+[schema] 表已存在，跳过创建: indicators
+[schema] 表已存在，跳过创建: market_quotes
+[schema] 表已存在，跳过创建: fetch_logs
+[boot] MySQL 连接成功
+[import] 库中已有数据 (countries=297, quotes=129)，跳过 SQLite 导入
+[background] 开始抓取全部数据源...

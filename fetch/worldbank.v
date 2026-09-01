@@ -14,114 +14,114 @@ struct WBIndicator {
 fn wb_indicators() []WBIndicator {
 	return [
 		WBIndicator{
-			code:  'SP.POP.TOTL'
+			code: 'SP.POP.TOTL'
 			label: 'Population'
-			unit:  'people'
+			unit: 'people'
 		},
 		WBIndicator{
-			code:  'NY.GDP.MKTP.CD'
+			code: 'NY.GDP.MKTP.CD'
 			label: 'GDP'
-			unit:  'USD'
+			unit: 'USD'
 		},
 		WBIndicator{
-			code:  'NY.GDP.PCAP.KD'
+			code: 'NY.GDP.PCAP.KD'
 			label: 'GDP per capita'
-			unit:  'USD'
+			unit: 'USD'
 		},
 		WBIndicator{
-			code:  'NY.GDP.MKTP.KD.ZG'
+			code: 'NY.GDP.MKTP.KD.ZG'
 			label: 'GDP growth %'
-			unit:  '%'
+			unit: '%'
 		},
 		WBIndicator{
-			code:  'SP.DYN.LE00.IN'
+			code: 'SP.DYN.LE00.IN'
 			label: 'Life expectancy'
-			unit:  'years'
+			unit: 'years'
 		},
 		WBIndicator{
-			code:  'SE.XPD.TOTL.GD.ZS'
+			code: 'SE.XPD.TOTL.GD.ZS'
 			label: 'Education spending %'
-			unit:  '%GDP'
+			unit: '%GDP'
 		},
 		WBIndicator{
-			code:  'SH.XPD.CHEX.GD.ZS'
+			code: 'SH.XPD.CHEX.GD.ZS'
 			label: 'Health spending %'
-			unit:  '%GDP'
+			unit: '%GDP'
 		},
 		WBIndicator{
-			code:  'SL.UEM.TOTL.NE.ZS'
+			code: 'SL.UEM.TOTL.NE.ZS'
 			label: 'Unemployment %'
-			unit:  '%'
+			unit: '%'
 		},
 		WBIndicator{
-			code:  'FP.CPI.TOTL.ZG'
+			code: 'FP.CPI.TOTL.ZG'
 			label: 'Inflation %'
-			unit:  '%'
+			unit: '%'
 		},
 		WBIndicator{
-			code:  'GC.DOD.TOTL.GD.ZS'
+			code: 'GC.DOD.TOTL.GD.ZS'
 			label: 'Gov debt %'
-			unit:  '%GDP'
+			unit: '%GDP'
 		},
 		WBIndicator{
-			code:  'GC.XPN.TOTL.GD.ZS'
+			code: 'GC.XPN.TOTL.GD.ZS'
 			label: 'Gov spending %'
-			unit:  '%GDP'
+			unit: '%GDP'
 		},
 		WBIndicator{
-			code:  'NY.GNS.ICTR.ZS'
+			code: 'NY.GNS.ICTR.ZS'
 			label: 'Gross savings %'
-			unit:  '%GDP'
+			unit: '%GDP'
 		},
 		WBIndicator{
-			code:  'NE.EXP.GNFS.ZS'
+			code: 'NE.EXP.GNFS.ZS'
 			label: 'Exports %'
-			unit:  '%GDP'
+			unit: '%GDP'
 		},
 		WBIndicator{
-			code:  'NE.IMP.GNFS.ZS'
+			code: 'NE.IMP.GNFS.ZS'
 			label: 'Imports %'
-			unit:  '%GDP'
+			unit: '%GDP'
 		},
 		WBIndicator{
-			code:  'SP.POP.GROW'
+			code: 'SP.POP.GROW'
 			label: 'Population growth %'
-			unit:  '%'
+			unit: '%'
 		},
 		WBIndicator{
-			code:  'IT.NET.USER.ZS'
+			code: 'IT.NET.USER.ZS'
 			label: 'Internet users %'
-			unit:  '%'
+			unit: '%'
 		},
 		WBIndicator{
-			code:  'EG.USE.PCAP.KG.OE'
+			code: 'EG.USE.PCAP.KG.OE'
 			label: 'Energy use'
-			unit:  'kg'
+			unit: 'kg'
 		},
 		WBIndicator{
-			code:  'EG.FEC.RNEW.ZS'
+			code: 'EG.FEC.RNEW.ZS'
 			label: 'Renewable energy %'
-			unit:  '%'
+			unit: '%'
 		},
 		WBIndicator{
-			code:  'EN.ATM.CO2E.KT'
+			code: 'EN.ATM.CO2E.KT'
 			label: 'CO2 emissions'
-			unit:  'kt'
+			unit: 'kt'
 		},
 		WBIndicator{
-			code:  'AG.LND.TOTL.K2'
+			code: 'AG.LND.TOTL.K2'
 			label: 'Land area'
-			unit:  'sq km'
+			unit: 'sq km'
 		},
 		WBIndicator{
-			code:  'NY.GDP.MKTP.PP.CD'
+			code: 'NY.GDP.MKTP.PP.CD'
 			label: 'GDP PPP'
-			unit:  'int-$'
+			unit: 'int-\$'
 		},
 		WBIndicator{
-			code:  'NY.GDP.PCAP.PP.CD'
+			code: 'NY.GDP.PCAP.PP.CD'
 			label: 'GDP per capita PPP'
-			unit:  'int-$'
+			unit: 'int-\$'
 		},
 	]
 }
@@ -319,12 +319,12 @@ pub fn fetch_worldbank(dbconn &database.Database, limit int) !int {
 		}
 		cn := names[iso3]
 		i2 := iso3_to_iso2(iso3)
-		m.exec("INSERT IGNORE INTO countries (iso2, iso3, name, region) VALUES ('${esc(i2)}', '${esc(iso3)}', '${esc(cn)}', 'global')") or {}
+		dbconn.exec_params("INSERT IGNORE INTO countries (iso2, iso3, name, region) VALUES (?,?,?,?)", i2, iso3, cn, 'global') or {}
 
 		for ind in inds {
 			v := fetch_wb_value(iso3, ind.code)
 			if v.ok {
-				m.exec("INSERT INTO indicators (source, country_iso, indicator, label, year, value, unit) VALUES ('worldbank', '${esc(i2)}', '${esc(ind.code)}', '${esc(ind.label)}', ${v.year}, ${v.value}, '${esc(ind.unit)}') ON DUPLICATE KEY UPDATE value=VALUES(value), year=VALUES(year), updated_at=CURRENT_TIMESTAMP") or {}
+				_, _ = dbconn.exec_params("INSERT INTO indicators (source, country_iso, indicator, label, year, value, unit) VALUES (?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE value=VALUES(value), year=VALUES(year), updated_at=CURRENT_TIMESTAMP", 'worldbank', i2, ind.code, ind.label, '${v.year}', '${v.value}', ind.unit)
 				inserted++
 			} else {
 				req_fail++
@@ -334,17 +334,14 @@ pub fn fetch_worldbank(dbconn &database.Database, limit int) !int {
 	}
 	dur := int(time.now().unix_milli() - start.unix_milli())
 	if inserted == 0 && req_fail > 0 {
-		dbconn.log_fetch('worldbank', 'failed',
-			'${req_fail} 个请求全部失败（网络不可用？），共尝试 ${count} 国 × ${inds.len} 指标',
-			0, dur)
+		dbconn.log_fetch('worldbank', 'failed', '${req_fail} 个请求全部失败（网络不可用？），共尝试 ${count} 国 × ${inds.len} 指标', 0, dur)
 		return error('worldbank: 所有 ${req_fail} 个请求均失败')
 	}
 	msg := '抓取 ${count} 个国家 × ${inds.len} 指标: 成功 ${inserted} 条'
 	if inserted == 0 {
 		dbconn.log_fetch('worldbank', 'success', msg + '（数据源无更新）', inserted, dur)
 	} else if req_fail > 0 {
-		dbconn.log_fetch('worldbank', 'partial', '${msg}, 失败 ${req_fail} 个请求', inserted,
-			dur)
+		dbconn.log_fetch('worldbank', 'partial', '${msg}, 失败 ${req_fail} 个请求', inserted, dur)
 	} else {
 		dbconn.log_fetch('worldbank', 'success', msg, inserted, dur)
 	}
@@ -364,9 +361,9 @@ fn fetch_wb_value(iso3 string, indicator string) WBValue {
 	body := http_get(url, '') or { return WBValue{} }
 	val, yr := parse_wb(body)
 	return WBValue{
-		ok:    val > 0
+		ok: val > 0
 		value: val
-		year:  yr
+		year: yr
 	}
 }
 
@@ -376,60 +373,60 @@ pub fn fetch_wld(dbconn &database.Database) !int {
 	m := dbconn.handle()
 	mut wld_inds := []WBIndicator{}
 	wld_inds << WBIndicator{
-		code:  'NY.GDP.MKTP.CD'
+		code: 'NY.GDP.MKTP.CD'
 		label: 'GDP'
-		unit:  'USD'
+		unit: 'USD'
 	}
 	wld_inds << WBIndicator{
-		code:  'SP.POP.TOTL'
+		code: 'SP.POP.TOTL'
 		label: 'Population'
-		unit:  'people'
+		unit: 'people'
 	}
 	wld_inds << WBIndicator{
-		code:  'SP.DYN.LE00.IN'
+		code: 'SP.DYN.LE00.IN'
 		label: 'Life expectancy'
-		unit:  'years'
+		unit: 'years'
 	}
 	wld_inds << WBIndicator{
-		code:  'NY.GDP.PCAP.KD'
+		code: 'NY.GDP.PCAP.KD'
 		label: 'GDP per capita'
-		unit:  'USD'
+		unit: 'USD'
 	}
 	wld_inds << WBIndicator{
-		code:  'FP.CPI.TOTL.ZG'
+		code: 'FP.CPI.TOTL.ZG'
 		label: 'Inflation %'
-		unit:  '%'
+		unit: '%'
 	}
 	wld_inds << WBIndicator{
-		code:  'SL.UEM.TOTL.NE.ZS'
+		code: 'SL.UEM.TOTL.NE.ZS'
 		label: 'Unemployment %'
-		unit:  '%'
+		unit: '%'
 	}
 	wld_inds << WBIndicator{
-		code:  'IT.NET.USER.ZS'
+		code: 'IT.NET.USER.ZS'
 		label: 'Internet users %'
-		unit:  '%'
+		unit: '%'
 	}
 	wld_inds << WBIndicator{
-		code:  'SE.XPD.TOTL.GD.ZS'
+		code: 'SE.XPD.TOTL.GD.ZS'
 		label: 'Education spending %'
-		unit:  '%GDP'
+		unit: '%GDP'
 	}
 	wld_inds << WBIndicator{
-		code:  'SH.XPD.CHEX.GD.ZS'
+		code: 'SH.XPD.CHEX.GD.ZS'
 		label: 'Health spending %'
-		unit:  '%GDP'
+		unit: '%GDP'
 	}
 	wld_inds << WBIndicator{
-		code:  'EG.USE.PCAP.KG.OE'
+		code: 'EG.USE.PCAP.KG.OE'
 		label: 'Energy use'
-		unit:  'kg'
+		unit: 'kg'
 	}
 	mut inserted := 0
 	for ind in wld_inds {
 		v := fetch_wb_value('WLD', ind.code)
 		if v.ok {
-			m.exec("INSERT INTO indicators (source, country_iso, indicator, label, year, value, unit) VALUES ('worldbank', 'WLD', '${esc(ind.code)}', '${esc(ind.label)}', ${v.year}, ${v.value}, '${esc(ind.unit)}') ON DUPLICATE KEY UPDATE value=VALUES(value), year=VALUES(year), updated_at=CURRENT_TIMESTAMP") or {}
+			_, _ = dbconn.exec_params("INSERT INTO indicators (source, country_iso, indicator, label, year, value, unit) VALUES (?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE value=VALUES(value), year=VALUES(year), updated_at=CURRENT_TIMESTAMP", 'worldbank', 'WLD', ind.code, ind.label, '${v.year}', '${v.value}', ind.unit) or {}
 			inserted++
 		}
 	}
